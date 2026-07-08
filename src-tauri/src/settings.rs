@@ -672,20 +672,28 @@ fn default_post_process_models() -> HashMap<String, String> {
 /// not gated behind a toggle (see "Ability to slightly customise clean step"
 /// scope revision).
 pub fn build_default_clean_prompt(strip_filler: bool, convert_spoken: bool) -> String {
-    let mut fragments: Vec<&str> = vec!["Fix spelling, capitalisation, and punctuation errors."];
+    let mut fragments: Vec<&str> = vec![
+        "Fix spelling errors",
+        "Fix capitalisation errors",
+        "Fix punctuation errors",
+    ];
 
     if strip_filler {
-        fragments.push("Remove filler words and hesitations (um, uh, like, you know), and drop self-corrections (no, wait, scratch that), keeping only the corrected version.");
+        fragments.push("Remove filler words and hesitations (um, uh, like, you know)");
+        fragments.push("Remove self-corrections, keeping only the corrected version");
     }
     if convert_spoken {
-        fragments.push("Convert spoken numbers to digits (twenty-five → 25, ten percent → 10%, five dollars → $5), spoken dates to date format (seventeenth June → 17th June, first Jan → 1st January), and spoken punctuation to symbols (period → ., comma → ,, question mark → ?).");
+        fragments.push(
+            "Convert spoken numbers to digits (twenty-five → 25, ten percent → 10%, five dollars → $5)",
+        );
+        fragments.push("Convert spoken dates to date format (seventeenth June → 17th June, first Jan → 1st January)");
     }
 
-    let mut prompt = String::from("Clean this transcript:");
+    let mut prompt = String::from("Apply ONLY these fixes to the following transcript, in order:");
     for (i, fragment) in fragments.iter().enumerate() {
         prompt.push_str(&format!("\n{}. {}", i + 1, fragment));
     }
-    prompt.push_str("\n\nKeep the language in the original version. Preserve exact meaning and word order. Do not paraphrase or reorder content.\n\nReturn only the cleaned transcript.\n\nTranscript:\n${output}");
+    prompt.push_str("\n\nDo nothing else. Keep the language in the original version. Preserve exact meaning and word order. Do not paraphrase or reorder content. Return transcript unchanged except for these categories. If you're unsure whether something fits these categories, leave it unchanged.\n\nTranscript:\n${output}");
 
     prompt
 }

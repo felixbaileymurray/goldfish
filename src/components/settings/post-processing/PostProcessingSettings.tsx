@@ -429,6 +429,7 @@ export const PostProcessingSettings: React.FC = () => {
 
   const stripFiller = getSetting("clean_strip_filler") ?? true;
   const convertSpoken = getSetting("clean_convert_spoken") ?? true;
+  const experimentalEnabled = getSetting("experimental_enabled") || false;
 
   return (
     <div className="max-w-3xl w-full mx-auto space-y-6">
@@ -445,30 +446,32 @@ export const PostProcessingSettings: React.FC = () => {
         <PostProcessingSettingsApi />
       </SettingsGroup>
 
-      <SettingsGroup title={t("settings.postProcessing.cleanup.title")}>
-        <ToggleSwitch
-          checked={stripFiller}
-          onChange={(value) => updateSetting("clean_strip_filler", value)}
-          isUpdating={isUpdating("clean_strip_filler")}
-          label={t("settings.postProcessing.cleanup.stripFiller.label")}
-          description={t(
-            "settings.postProcessing.cleanup.stripFiller.description",
-          )}
-          descriptionMode="tooltip"
-          grouped={true}
-        />
-        <ToggleSwitch
-          checked={convertSpoken}
-          onChange={(value) => updateSetting("clean_convert_spoken", value)}
-          isUpdating={isUpdating("clean_convert_spoken")}
-          label={t("settings.postProcessing.cleanup.convertSpoken.label")}
-          description={t(
-            "settings.postProcessing.cleanup.convertSpoken.description",
-          )}
-          descriptionMode="tooltip"
-          grouped={true}
-        />
-      </SettingsGroup>
+      {experimentalEnabled && (
+        <SettingsGroup title={t("settings.postProcessing.cleanup.title")}>
+          <ToggleSwitch
+            checked={stripFiller}
+            onChange={(value) => updateSetting("clean_strip_filler", value)}
+            isUpdating={isUpdating("clean_strip_filler")}
+            label={t("settings.postProcessing.cleanup.stripFiller.label")}
+            description={t(
+              "settings.postProcessing.cleanup.stripFiller.description",
+            )}
+            descriptionMode="tooltip"
+            grouped={true}
+          />
+          <ToggleSwitch
+            checked={convertSpoken}
+            onChange={(value) => updateSetting("clean_convert_spoken", value)}
+            isUpdating={isUpdating("clean_convert_spoken")}
+            label={t("settings.postProcessing.cleanup.convertSpoken.label")}
+            description={t(
+              "settings.postProcessing.cleanup.convertSpoken.description",
+            )}
+            descriptionMode="tooltip"
+            grouped={true}
+          />
+        </SettingsGroup>
+      )}
     </div>
   );
 };
