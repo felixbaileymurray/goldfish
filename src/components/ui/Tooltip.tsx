@@ -16,7 +16,7 @@ interface TooltipCoords {
 }
 
 interface TooltipProps {
-  targetRef: React.RefObject<HTMLElement>;
+  targetRef: React.RefObject<HTMLElement | null>;
   position?: TooltipPosition;
   children: React.ReactNode;
 }
