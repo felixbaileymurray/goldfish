@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  VIEWPORT_PADDING,
   clampHorizontal,
   resolveVerticalPosition,
 } from "@/lib/utils/viewportPosition";
