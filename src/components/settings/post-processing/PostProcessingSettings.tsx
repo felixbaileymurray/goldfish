@@ -4,7 +4,6 @@ import { RefreshCcw } from "lucide-react";
 import { commands } from "@/bindings";
 
 import { Banner } from "@astryxdesign/core/Banner";
-import { SettingContainer } from "@/components/ui";
 import {
   Button,
   Field,
@@ -142,6 +141,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
 
 const PostProcessingSettingsPromptsComponent: React.FC = () => {
   const { t } = useTranslation();
+  const promptsFieldID = useId();
   const { getSetting, updateSetting, isUpdating, refreshSettings } =
     useSettings();
   const [isCreating, setIsCreating] = useState(false);
@@ -245,14 +245,13 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
       draftText.trim() !== selectedPrompt.prompt.trim());
 
   return (
-    <SettingContainer
-      title={t("settings.postProcessing.prompts.selectedPrompt.title")}
-      description={t(
+    <Field
+      label={t("settings.postProcessing.prompts.selectedPrompt.title")}
+      labelTooltip={t(
         "settings.postProcessing.prompts.selectedPrompt.description",
       )}
-      descriptionMode="tooltip"
-      layout="stacked"
-      grouped={true}
+      inputID={promptsFieldID}
+      width="100%"
     >
       <div className="space-y-3">
         <div className="flex gap-2">
@@ -383,7 +382,7 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
           </div>
         )}
       </div>
-    </SettingContainer>
+    </Field>
   );
 };
 

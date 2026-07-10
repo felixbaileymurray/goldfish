@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
 import { commands } from "@/bindings";
 
-import { SettingContainer, SettingsGroup } from "@/components/ui";
 import {
   Button,
+  Field,
+  HStack,
   IconButton,
   Selector,
   TextArea,
@@ -15,11 +16,14 @@ import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import type { ModelOption } from "../PostProcessingSettingsApi/types";
 import { useSettings } from "../../../hooks/useSettings";
 import { SummarisationToggle } from "../SummarisationToggle";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 
 const APPLE_PROVIDER_ID = "apple_intelligence";
 
 const SummarisationModelComponent: React.FC = () => {
   const { t } = useTranslation();
+  const providerFieldID = useId();
+  const modelFieldID = useId();
   const {
     settings,
     isUpdating,
@@ -58,25 +62,23 @@ const SummarisationModelComponent: React.FC = () => {
 
   return (
     <>
-      <SettingContainer
-        title={t("settings.summarisation.provider.title")}
-        description={t("settings.summarisation.provider.description")}
-        descriptionMode="tooltip"
-        layout="horizontal"
-        grouped={true}
+      <Field
+        label={t("settings.summarisation.provider.title")}
+        labelTooltip={t("settings.summarisation.provider.description")}
+        inputID={providerFieldID}
+        width="100%"
       >
         <p className="text-sm text-text/70">{provider?.label ?? providerId}</p>
-      </SettingContainer>
+      </Field>
 
       {!isAppleProvider && (
-        <SettingContainer
-          title={t("settings.summarisation.model.title")}
-          description={t("settings.summarisation.model.description")}
-          descriptionMode="tooltip"
-          layout="stacked"
-          grouped={true}
+        <Field
+          label={t("settings.summarisation.model.title")}
+          labelTooltip={t("settings.summarisation.model.description")}
+          inputID={modelFieldID}
+          width="100%"
         >
-          <div className="flex items-center gap-2">
+          <HStack gap={2}>
             <ModelSelect
               value={model}
               options={modelOptions}
@@ -103,8 +105,8 @@ const SummarisationModelComponent: React.FC = () => {
               isDisabled={isFetchingModels}
               variant="ghost"
             />
-          </div>
-        </SettingContainer>
+          </HStack>
+        </Field>
       )}
     </>
   );
@@ -112,6 +114,7 @@ const SummarisationModelComponent: React.FC = () => {
 
 const SummarisationPromptsComponent: React.FC = () => {
   const { t } = useTranslation();
+  const promptsFieldID = useId();
   const { getSetting, updateSetting, isUpdating, refreshSettings } =
     useSettings();
   const [isCreating, setIsCreating] = useState(false);
@@ -211,14 +214,13 @@ const SummarisationPromptsComponent: React.FC = () => {
       draftText.trim() !== selectedPrompt.prompt.trim());
 
   return (
-    <SettingContainer
-      title={t("settings.summarisation.prompts.selectedPrompt.title")}
-      description={t(
+    <Field
+      label={t("settings.summarisation.prompts.selectedPrompt.title")}
+      labelTooltip={t(
         "settings.summarisation.prompts.selectedPrompt.description",
       )}
-      descriptionMode="tooltip"
-      layout="stacked"
-      grouped={true}
+      inputID={promptsFieldID}
+      width="100%"
     >
       <div className="space-y-3">
         <div className="flex gap-2">
@@ -336,7 +338,7 @@ const SummarisationPromptsComponent: React.FC = () => {
           </div>
         )}
       </div>
-    </SettingContainer>
+    </Field>
   );
 };
 
@@ -353,17 +355,15 @@ export const SummarisationSettings: React.FC = () => {
           {t("settings.summarisation.description")}
         </p>
       </div>
-      <SettingsGroup>
-        <SummarisationToggle />
-      </SettingsGroup>
+      <SummarisationToggle />
 
-      <SettingsGroup title={t("settings.summarisation.api.title")}>
+      <SettingsFormGroup title={t("settings.summarisation.api.title")}>
         <SummarisationModelComponent />
-      </SettingsGroup>
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.summarisation.prompts.title")}>
+      <SettingsFormGroup title={t("settings.summarisation.prompts.title")}>
         <SummarisationPromptsComponent />
-      </SettingsGroup>
+      </SettingsFormGroup>
     </div>
   );
 };

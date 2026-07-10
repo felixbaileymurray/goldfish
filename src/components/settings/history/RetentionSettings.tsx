@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { SettingsGroup } from "../../ui/SettingsGroup";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 import { HistoryLimit } from "../HistoryLimit";
 import { RecordingRetentionPeriodSelector } from "../RecordingRetentionPeriod";
 
@@ -17,13 +17,10 @@ export const RetentionSettings: React.FC = () => {
           {t("settings.retention.description")}
         </p>
       </div>
-      <SettingsGroup title={t("settings.capture.history.title")}>
-        <HistoryLimit descriptionMode="tooltip" grouped={true} />
-        <RecordingRetentionPeriodSelector
-          descriptionMode="tooltip"
-          grouped={true}
-        />
-      </SettingsGroup>
+      <SettingsFormGroup title={t("settings.capture.history.title")}>
+        <HistoryLimit />
+        <RecordingRetentionPeriodSelector />
+      </SettingsFormGroup>
     </div>
   );
 };

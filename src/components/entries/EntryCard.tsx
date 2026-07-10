@@ -21,7 +21,7 @@ import { IconButton } from "@astryxdesign/core/IconButton";
 import { Timestamp } from "@astryxdesign/core/Timestamp";
 import { Collapsible } from "@astryxdesign/core/Collapsible";
 import { type HistoryEntry } from "@/bindings";
-import { AudioPlayer } from "../ui/AudioPlayer";
+import { AudioPlayer } from "../shared/AudioPlayer";
 
 export interface EntryCardProps {
   entry: HistoryEntry;

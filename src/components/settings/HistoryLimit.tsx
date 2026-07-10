@@ -1,19 +1,11 @@
-import React from "react";
+import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
-import { TextInput } from "@astryxdesign/core";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field, HStack, TextInput } from "@astryxdesign/core";
 
-interface HistoryLimitProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const HistoryLimit: React.FC<HistoryLimitProps> = ({
-  descriptionMode = "inline",
-  grouped = false,
-}) => {
+export const HistoryLimit: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, updateSetting, isUpdating } = useSettings();
 
   const historyLimit = getSetting("history_limit") ?? 5;
@@ -26,14 +18,13 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={t("settings.debug.historyLimit.title")}
-      description={t("settings.debug.historyLimit.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      layout="horizontal"
+    <Field
+      label={t("settings.debug.historyLimit.title")}
+      labelTooltip={t("settings.debug.historyLimit.description")}
+      inputID={inputID}
+      width="100%"
     >
-      <div className="flex items-center space-x-2">
+      <HStack gap={2}>
         <TextInput
           label={t("settings.debug.historyLimit.title")}
           isLabelHidden
@@ -45,7 +36,7 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
         <span className="text-sm text-text">
           {t("settings.debug.historyLimit.entries")}
         </span>
-      </div>
-    </SettingContainer>
+      </HStack>
+    </Field>
   );
 };
