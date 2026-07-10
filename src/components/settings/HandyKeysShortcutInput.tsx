@@ -2,8 +2,20 @@ import React, { useEffect, useId, useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { formatKeyCombination } from "../../lib/utils/keyboard";
-import { ResetButton } from "../ui/ResetButton";
-import { Field, HStack } from "@astryxdesign/core";
+import { Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
+
+const toKbdFormat = (binding: string): string =>
+  binding
+    .split("+")
+    .map((k) => {
+      const part = k.replace(/_left$|_right$/i, "").toLowerCase();
+      if (part === "command" || part === "cmd" || part === "meta") return "mod";
+      if (part === "option") return "alt";
+      if (part === "control") return "ctrl";
+      return part;
+    })
+    .join("+");
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import { commands } from "@/bindings";
@@ -268,16 +280,22 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
             {formatCurrentKeys()}
           </div>
         ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
+          <button
+            className="rounded-md cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
             onClick={startRecording}
+            aria-label={t("settings.general.shortcut.editAriaLabel", {
+              keys: formatKeyCombination(binding.current_binding, osType),
+            })}
           >
-            {formatKeyCombination(binding.current_binding, osType)}
-          </div>
+            <Kbd keys={toKbdFormat(binding.current_binding)} />
+          </button>
         )}
-        <ResetButton
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
           onClick={() => resetBinding(shortcutId)}
-          disabled={isUpdating(`binding_${shortcutId}`)}
+          isDisabled={isUpdating(`binding_${shortcutId}`)}
+          variant="ghost"
         />
       </HStack>
     </Field>

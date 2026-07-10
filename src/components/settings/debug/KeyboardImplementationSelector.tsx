@@ -1,19 +1,17 @@
-import React, { useId } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { Field } from "@astryxdesign/core";
-import { Dropdown, type DropdownOption } from "../../ui/Dropdown";
+import { Selector } from "@astryxdesign/core";
 import { useSettings } from "../../../hooks/useSettings";
 import { commands } from "@/bindings";
 import { toast } from "sonner";
 
-const KEYBOARD_IMPLEMENTATION_OPTIONS: DropdownOption[] = [
+const KEYBOARD_IMPLEMENTATION_OPTIONS = [
   { value: "tauri", label: "Tauri Global Shortcut" },
   { value: "handy_keys", label: "Handy Keys" },
 ];
 
 export const KeyboardImplementationSelector: React.FC = () => {
   const { t } = useTranslation();
-  const inputID = useId();
   const { getSetting, isUpdating, refreshSettings } = useSettings();
   const currentImplementation =
     getSetting("keyboard_implementation") ?? "tauri";
@@ -46,18 +44,14 @@ export const KeyboardImplementationSelector: React.FC = () => {
   };
 
   return (
-    <Field
+    <Selector
       label={t("settings.debug.keyboardImplementation.title")}
       description={t("settings.debug.keyboardImplementation.description")}
-      inputID={inputID}
+      options={KEYBOARD_IMPLEMENTATION_OPTIONS}
+      value={currentImplementation}
+      onChange={handleSelect}
+      isDisabled={isUpdating("keyboard_implementation")}
       width="100%"
-    >
-      <Dropdown
-        options={KEYBOARD_IMPLEMENTATION_OPTIONS}
-        selectedValue={currentImplementation}
-        onSelect={handleSelect}
-        disabled={isUpdating("keyboard_implementation")}
-      />
-    </Field>
+    />
   );
 };

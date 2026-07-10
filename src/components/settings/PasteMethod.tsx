@@ -1,8 +1,6 @@
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { Field, VStack } from "@astryxdesign/core";
-import { Input } from "../ui/Input";
+import { Field, Selector, TextInput, VStack } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import type { PasteMethod } from "@/bindings";
@@ -74,25 +72,27 @@ export const PasteMethodSetting: React.FC = React.memo(() => {
       width="100%"
     >
       <VStack gap={2}>
-        <Dropdown
+        <Selector
+          label={t("settings.advanced.pasteMethod.title")}
+          isLabelHidden
           options={pasteMethodOptions}
-          selectedValue={selectedMethod}
-          onSelect={(value) =>
+          value={selectedMethod}
+          onChange={(value) =>
             updateSetting("paste_method", value as PasteMethod)
           }
-          disabled={isUpdating("paste_method")}
+          isDisabled={isUpdating("paste_method")}
         />
         {selectedMethod === "external_script" && (
-          <Input
+          <TextInput
+            label={t("settings.advanced.pasteMethod.externalScriptPlaceholder")}
+            isLabelHidden
             type="text"
             value={externalScriptPath}
-            onChange={(e) =>
-              updateSetting("external_script_path", e.target.value)
-            }
+            onChange={(val) => updateSetting("external_script_path", val)}
             placeholder={t(
               "settings.advanced.pasteMethod.externalScriptPlaceholder",
             )}
-            disabled={isUpdating("external_script_path")}
+            isDisabled={isUpdating("external_script_path")}
           />
         )}
       </VStack>

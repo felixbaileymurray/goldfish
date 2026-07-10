@@ -252,6 +252,7 @@
         "none": "No shortcuts configured",
         "notFound": "Shortcut not found",
         "pressKeys": "Press keys...",
+        "editAriaLabel": "Edit shortcut: {{keys}}",
         "bindings": {
           "transcribe": {
             "name": "Dictate",
@@ -540,7 +541,8 @@
       },
       "soundTheme": {
         "label": "Sound Theme",
-        "description": "Choose a sound theme for recording start and stop feedback"
+        "description": "Choose a sound theme for recording start and stop feedback",
+        "previewAriaLabel": "Preview sound theme"
       },
       "wordCorrectionThreshold": {
         "title": "Word Correction Threshold",

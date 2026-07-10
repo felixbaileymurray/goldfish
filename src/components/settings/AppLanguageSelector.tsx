@@ -1,13 +1,11 @@
-import React, { useId } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { Field } from "@astryxdesign/core";
+import { Selector } from "@astryxdesign/core";
 import { SUPPORTED_LANGUAGES, type SupportedLanguageCode } from "../../i18n";
 import { useSettings } from "@/hooks/useSettings";
 
 export const AppLanguageSelector: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
-  const inputID = useId();
   const { settings, updateSetting } = useSettings();
 
   const currentLanguage = (settings?.app_language ||
@@ -24,18 +22,14 @@ export const AppLanguageSelector: React.FC = React.memo(() => {
   };
 
   return (
-    <Field
+    <Selector
       label={t("appLanguage.title")}
       description={t("appLanguage.description")}
-      inputID={inputID}
+      options={languageOptions}
+      value={currentLanguage}
+      onChange={handleLanguageChange}
       width="100%"
-    >
-      <Dropdown
-        options={languageOptions}
-        selectedValue={currentLanguage}
-        onSelect={handleLanguageChange}
-      />
-    </Field>
+    />
   );
 });
 

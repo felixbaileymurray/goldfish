@@ -1,7 +1,6 @@
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { Field } from "@astryxdesign/core";
+import { Selector } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import { commands } from "@/bindings";
@@ -17,7 +16,6 @@ const allToolLabels: Record<string, string> = {
 
 export const TypingToolSetting: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const inputID = useId();
   const { getSetting, updateSetting, isUpdating } = useSettings();
   const osType = useOsType();
   const [availableTools, setAvailableTools] = useState<string[] | null>(null);
@@ -56,18 +54,14 @@ export const TypingToolSetting: React.FC = React.memo(() => {
   const selectedTool = (getSetting("typing_tool") || "auto") as TypingTool;
 
   return (
-    <Field
+    <Selector
       label={t("settings.advanced.typingTool.title")}
       description={t("settings.advanced.typingTool.description")}
-      inputID={inputID}
+      options={typingToolOptions}
+      value={selectedTool}
+      onChange={(value) => updateSetting("typing_tool", value as TypingTool)}
+      isDisabled={isUpdating("typing_tool")}
       width="100%"
-    >
-      <Dropdown
-        options={typingToolOptions}
-        selectedValue={selectedTool}
-        onSelect={(value) => updateSetting("typing_tool", value as TypingTool)}
-        disabled={isUpdating("typing_tool")}
-      />
-    </Field>
+    />
   );
 });

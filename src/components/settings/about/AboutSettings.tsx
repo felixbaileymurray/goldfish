@@ -2,10 +2,9 @@ import React, { useState, useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Code, Field, HStack, Text } from "@astryxdesign/core";
+import { Button, Code, Field, HStack, Text } from "@astryxdesign/core";
 import { SettingsPage } from "../shared/SettingsPage";
 import { SettingsFormGroup } from "../shared/SettingsFormGroup";
-import { Button } from "../../ui/Button";
 import { AppDataDirectory } from "../AppDataDirectory";
 import { AppLanguageSelector } from "../AppLanguageSelector";
 import { LogDirectory } from "../debug";
@@ -69,9 +68,11 @@ export const AboutSettings: React.FC = () => {
           inputID={supportInputID}
           width="100%"
         >
-          <Button variant="primary" size="md" onClick={handleDonateClick}>
-            {t("settings.about.supportDevelopment.button")}
-          </Button>
+          <Button
+            label={t("settings.about.supportDevelopment.button")}
+            variant="primary"
+            onClick={handleDonateClick}
+          />
         </Field>
 
         <Field
@@ -81,14 +82,12 @@ export const AboutSettings: React.FC = () => {
           width="100%"
         >
           <Button
+            label={t("settings.about.sourceCode.button")}
             variant="secondary"
-            size="md"
             onClick={() =>
               openUrl("https://github.com/felixbaileymurray/goldfish")
             }
-          >
-            {t("settings.about.sourceCode.button")}
-          </Button>
+          />
         </Field>
 
         <AppDataDirectory />
@@ -106,7 +105,6 @@ export const AboutSettings: React.FC = () => {
             {t("settings.about.acknowledgments.whisper.details")}
           </Text>
         </Field>
-        {/* eslint-disable i18next/no-literal-string */}
         <Field
           label="Handy"
           description="Goldfish is built on Handy, the open-source speech-to-text app by cjpais."
@@ -114,14 +112,11 @@ export const AboutSettings: React.FC = () => {
           width="100%"
         >
           <Button
+            label="View upstream"
             variant="secondary"
-            size="md"
             onClick={() => openUrl("https://github.com/cjpais/Handy")}
-          >
-            View upstream
-          </Button>
+          />
         </Field>
-        {/* eslint-enable i18next/no-literal-string */}
       </SettingsFormGroup>
     </SettingsPage>
   );

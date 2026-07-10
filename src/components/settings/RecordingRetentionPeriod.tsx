@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
+import { Selector } from "@astryxdesign/core";
 import { SettingContainer } from "../ui/SettingContainer";
 import { useSettings } from "../../hooks/useSettings";
 import { RecordingRetentionPeriod } from "@/bindings";
@@ -49,12 +49,14 @@ export const RecordingRetentionPeriodSelector: React.FC<RecordingRetentionPeriod
         descriptionMode={descriptionMode}
         grouped={grouped}
       >
-        <Dropdown
+        <Selector
+          label={t("settings.debug.recordingRetention.title")}
+          isLabelHidden
           options={retentionOptions}
-          selectedValue={selectedRetentionPeriod}
-          onSelect={handleRetentionPeriodSelect}
+          value={selectedRetentionPeriod}
+          onChange={handleRetentionPeriodSelect}
           placeholder={t("settings.debug.recordingRetention.placeholder")}
-          disabled={isUpdating("recording_retention_period")}
+          isDisabled={isUpdating("recording_retention_period")}
         />
       </SettingContainer>
     );

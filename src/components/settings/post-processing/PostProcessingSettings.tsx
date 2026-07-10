@@ -3,12 +3,18 @@ import { Trans, useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
 import { commands } from "@/bindings";
 
-import { Alert } from "../../ui/Alert";
-import { Dropdown, SettingContainer, Textarea } from "@/components/ui";
-import { Button } from "../../ui/Button";
-import { ResetButton } from "../../ui/ResetButton";
-import { Input } from "../../ui/Input";
-import { Field, HStack, Switch } from "@astryxdesign/core";
+import { Banner } from "@astryxdesign/core/Banner";
+import { SettingContainer } from "@/components/ui";
+import {
+  Button,
+  Field,
+  HStack,
+  IconButton,
+  Selector,
+  Switch,
+  TextArea,
+  TextInput,
+} from "@astryxdesign/core";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
 import { BaseUrlField } from "../PostProcessingSettingsApi/BaseUrlField";
@@ -44,9 +50,12 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
 
       {state.isAppleProvider ? (
         state.appleIntelligenceUnavailable ? (
-          <Alert variant="error" contained>
-            {t("settings.postProcessing.api.appleIntelligence.unavailable")}
-          </Alert>
+          <Banner
+            status="error"
+            title={t(
+              "settings.postProcessing.api.appleIntelligence.unavailable",
+            )}
+          />
         ) : null
       ) : (
         <>
@@ -101,8 +110,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
             <ModelSelect
               value={state.model}
               options={state.modelOptions}
-              disabled={state.isModelUpdating}
-              isLoading={state.isFetchingModels}
+              isDisabled={state.isModelUpdating}
               placeholder={
                 state.modelOptions.length > 0
                   ? t(
@@ -112,19 +120,19 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
               }
               onSelect={state.handleModelSelect}
               onCreate={state.handleModelCreate}
-              onBlur={() => {}}
               className="flex-1 min-w-[380px]"
             />
-            <ResetButton
+            <IconButton
+              icon={
+                <RefreshCcw
+                  className={`h-4 w-4 ${state.isFetchingModels ? "animate-spin" : ""}`}
+                />
+              }
+              label={t("settings.postProcessing.api.model.refreshModels")}
               onClick={state.handleRefreshModels}
-              disabled={state.isFetchingModels}
-              ariaLabel={t("settings.postProcessing.api.model.refreshModels")}
-              className="flex h-10 w-10 items-center justify-center"
-            >
-              <RefreshCcw
-                className={`h-4 w-4 ${state.isFetchingModels ? "animate-spin" : ""}`}
-              />
-            </ResetButton>
+              isDisabled={state.isFetchingModels}
+              variant="ghost"
+            />
           </HStack>
         </Field>
       )}
@@ -248,57 +256,49 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
     >
       <div className="space-y-3">
         <div className="flex gap-2">
-          <Dropdown
-            selectedValue={selectedPromptId || null}
+          <Selector
+            label={t("settings.postProcessing.prompts.selectedPrompt.title")}
+            isLabelHidden
             options={prompts.map((p) => ({
               value: p.id,
               label: p.name,
             }))}
-            onSelect={(value) => handlePromptSelect(value)}
+            value={selectedPromptId || ""}
+            onChange={(value) => handlePromptSelect(value)}
             placeholder={
               prompts.length === 0
                 ? t("settings.postProcessing.prompts.noPrompts")
                 : t("settings.postProcessing.prompts.selectPrompt")
             }
-            disabled={
+            isDisabled={
               isUpdating("post_process_selected_prompt_id") || isCreating
             }
-            className="flex-1"
           />
           <Button
+            label={t("settings.postProcessing.prompts.createNew")}
             onClick={handleStartCreate}
             variant="primary"
-            size="md"
-            disabled={isCreating}
-          >
-            {t("settings.postProcessing.prompts.createNew")}
-          </Button>
+            isDisabled={isCreating}
+          />
         </div>
 
         {!isCreating && hasPrompts && selectedPrompt && (
           <div className="space-y-3">
-            <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.postProcessing.prompts.promptLabel")}
-              </label>
-              <Input
-                type="text"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder={t(
-                  "settings.postProcessing.prompts.promptLabelPlaceholder",
-                )}
-                variant="compact"
-              />
-            </div>
+            <TextInput
+              label={t("settings.postProcessing.prompts.promptLabel")}
+              type="text"
+              value={draftName}
+              onChange={(val) => setDraftName(val)}
+              placeholder={t(
+                "settings.postProcessing.prompts.promptLabelPlaceholder",
+              )}
+            />
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.postProcessing.prompts.promptInstructions")}
-              </label>
-              <Textarea
+              <TextArea
+                label={t("settings.postProcessing.prompts.promptInstructions")}
                 value={draftText}
-                onChange={(e) => setDraftText(e.target.value)}
+                onChange={(val) => setDraftText(val)}
                 placeholder={t(
                   "settings.postProcessing.prompts.promptInstructionsPlaceholder",
                 )}
@@ -313,21 +313,17 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
 
             <div className="flex gap-2 pt-2">
               <Button
+                label={t("settings.postProcessing.prompts.updatePrompt")}
                 onClick={handleUpdatePrompt}
                 variant="primary"
-                size="md"
-                disabled={!draftName.trim() || !draftText.trim() || !isDirty}
-              >
-                {t("settings.postProcessing.prompts.updatePrompt")}
-              </Button>
+                isDisabled={!draftName.trim() || !draftText.trim() || !isDirty}
+              />
               <Button
+                label={t("settings.postProcessing.prompts.deletePrompt")}
                 onClick={() => handleDeletePrompt(selectedPromptId)}
                 variant="secondary"
-                size="md"
-                disabled={!selectedPromptId || prompts.length <= 1}
-              >
-                {t("settings.postProcessing.prompts.deletePrompt")}
-              </Button>
+                isDisabled={!selectedPromptId || prompts.length <= 1}
+              />
             </div>
           </div>
         )}
@@ -344,28 +340,21 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
 
         {isCreating && (
           <div className="space-y-3">
-            <div className="space-y-2 block flex flex-col">
-              <label className="text-sm font-semibold text-text">
-                {t("settings.postProcessing.prompts.promptLabel")}
-              </label>
-              <Input
-                type="text"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder={t(
-                  "settings.postProcessing.prompts.promptLabelPlaceholder",
-                )}
-                variant="compact"
-              />
-            </div>
+            <TextInput
+              label={t("settings.postProcessing.prompts.promptLabel")}
+              type="text"
+              value={draftName}
+              onChange={(val) => setDraftName(val)}
+              placeholder={t(
+                "settings.postProcessing.prompts.promptLabelPlaceholder",
+              )}
+            />
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.postProcessing.prompts.promptInstructions")}
-              </label>
-              <Textarea
+              <TextArea
+                label={t("settings.postProcessing.prompts.promptInstructions")}
                 value={draftText}
-                onChange={(e) => setDraftText(e.target.value)}
+                onChange={(val) => setDraftText(val)}
                 placeholder={t(
                   "settings.postProcessing.prompts.promptInstructionsPlaceholder",
                 )}
@@ -380,20 +369,16 @@ const PostProcessingSettingsPromptsComponent: React.FC = () => {
 
             <div className="flex gap-2 pt-2">
               <Button
+                label={t("settings.postProcessing.prompts.createPrompt")}
                 onClick={handleCreatePrompt}
                 variant="primary"
-                size="md"
-                disabled={!draftName.trim() || !draftText.trim()}
-              >
-                {t("settings.postProcessing.prompts.createPrompt")}
-              </Button>
+                isDisabled={!draftName.trim() || !draftText.trim()}
+              />
               <Button
+                label={t("settings.postProcessing.prompts.cancel")}
                 onClick={handleCancelCreate}
                 variant="secondary"
-                size="md"
-              >
-                {t("settings.postProcessing.prompts.cancel")}
-              </Button>
+              />
             </div>
           </div>
         )}

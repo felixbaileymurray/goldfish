@@ -1,13 +1,11 @@
-import React, { useId, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
 import { commands, type ModelUnloadTimeout } from "@/bindings";
-import { Dropdown } from "../ui/Dropdown";
-import { Field } from "@astryxdesign/core";
+import { Selector } from "@astryxdesign/core";
 
 export const ModelUnloadTimeoutSetting: React.FC = () => {
   const { t } = useTranslation();
-  const inputID = useId();
   const { settings, getSetting, updateSetting } = useSettings();
 
   const timeoutOptions = [
@@ -67,22 +65,17 @@ export const ModelUnloadTimeoutSetting: React.FC = () => {
   }, [settings]);
 
   return (
-    <Field
+    <Selector
       label={t("settings.advanced.modelUnload.title")}
       description={t("settings.advanced.modelUnload.description")}
-      inputID={inputID}
+      options={options}
+      value={currentValue}
+      onChange={(value) =>
+        handleChange({
+          target: { value },
+        } as React.ChangeEvent<HTMLSelectElement>)
+      }
       width="100%"
-    >
-      <Dropdown
-        options={options}
-        selectedValue={currentValue}
-        onSelect={(value) =>
-          handleChange({
-            target: { value },
-          } as React.ChangeEvent<HTMLSelectElement>)
-        }
-        disabled={false}
-      />
-    </Field>
+    />
   );
 };

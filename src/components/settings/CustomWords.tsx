@@ -2,9 +2,7 @@ import React, { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useSettings } from "../../hooks/useSettings";
-import { Input } from "../ui/Input";
-import { Button } from "../ui/Button";
-import { Field, HStack, Token } from "@astryxdesign/core";
+import { Button, Field, HStack, TextInput, Token } from "@astryxdesign/core";
 
 export const CustomWords: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -56,29 +54,28 @@ export const CustomWords: React.FC = React.memo(() => {
       width="100%"
     >
       <HStack gap={2}>
-        <Input
+        <TextInput
+          label={t("settings.advanced.customWords.title")}
+          isLabelHidden
           type="text"
           className="max-w-40"
           value={newWord}
-          onChange={(e) => setNewWord(e.target.value)}
+          onChange={(val) => setNewWord(val)}
           onKeyDown={handleKeyPress}
           placeholder={t("settings.advanced.customWords.placeholder")}
-          variant="compact"
-          disabled={isUpdating("custom_words")}
+          isDisabled={isUpdating("custom_words")}
         />
         <Button
+          label={t("settings.advanced.customWords.add")}
           onClick={handleAddWord}
-          disabled={
+          isDisabled={
             !newWord.trim() ||
             newWord.includes(" ") ||
             newWord.trim().length > 50 ||
             isUpdating("custom_words")
           }
           variant="primary"
-          size="md"
-        >
-          {t("settings.advanced.customWords.add")}
-        </Button>
+        />
       </HStack>
       {customWords.length > 0 && (
         <HStack gap={1} wrap="wrap">

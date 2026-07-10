@@ -1,11 +1,10 @@
-import React, { useId } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { Field } from "@astryxdesign/core";
-import { Dropdown, type DropdownOption } from "../../ui/Dropdown";
+import { Selector } from "@astryxdesign/core";
 import { useSettings } from "../../../hooks/useSettings";
 import type { LogLevel } from "../../../bindings";
 
-const LOG_LEVEL_OPTIONS: DropdownOption[] = [
+const LOG_LEVEL_OPTIONS = [
   { value: "error", label: "Error" },
   { value: "warn", label: "Warn" },
   { value: "info", label: "Info" },
@@ -15,7 +14,6 @@ const LOG_LEVEL_OPTIONS: DropdownOption[] = [
 
 export const LogLevelSelector: React.FC = () => {
   const { t } = useTranslation();
-  const inputID = useId();
   const { settings, updateSetting, isUpdating } = useSettings();
   const currentLevel = settings?.log_level ?? "debug";
 
@@ -30,18 +28,14 @@ export const LogLevelSelector: React.FC = () => {
   };
 
   return (
-    <Field
+    <Selector
       label={t("settings.debug.logLevel.title")}
       description={t("settings.debug.logLevel.description")}
-      inputID={inputID}
+      options={LOG_LEVEL_OPTIONS}
+      value={currentLevel}
+      onChange={handleSelect}
+      isDisabled={!settings || isUpdating("log_level")}
       width="100%"
-    >
-      <Dropdown
-        options={LOG_LEVEL_OPTIONS}
-        selectedValue={currentLevel}
-        onSelect={handleSelect}
-        disabled={!settings || isUpdating("log_level")}
-      />
-    </Field>
+    />
   );
 };

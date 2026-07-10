@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Input } from "../../ui/Input";
+import { useTranslation } from "react-i18next";
+import { TextInput } from "@astryxdesign/core";
 
 interface BaseUrlFieldProps {
   value: string;
@@ -11,28 +12,24 @@ interface BaseUrlFieldProps {
 
 export const BaseUrlField: React.FC<BaseUrlFieldProps> = React.memo(
   ({ value, onBlur, disabled, placeholder, className = "" }) => {
+    const { t } = useTranslation();
     const [localValue, setLocalValue] = useState(value);
 
-    // Sync with prop changes
     React.useEffect(() => {
       setLocalValue(value);
     }, [value]);
 
-    const disabledMessage = disabled
-      ? "Base URL is managed by the selected provider."
-      : undefined;
-
     return (
-      <Input
+      <TextInput
         type="text"
+        label={t("settings.postProcessing.api.baseUrl.title")}
+        isLabelHidden
         value={localValue}
-        onChange={(event) => setLocalValue(event.target.value)}
+        onChange={(val) => setLocalValue(val)}
         onBlur={() => onBlur(localValue)}
         placeholder={placeholder}
-        variant="compact"
-        disabled={disabled}
+        isDisabled={disabled}
         className={`flex-1 min-w-[360px] ${className}`}
-        title={disabledMessage}
       />
     );
   },

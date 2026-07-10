@@ -1,7 +1,6 @@
-import React, { useId } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { Field } from "@astryxdesign/core";
+import { Selector } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import type { AutoSubmitKey } from "@/bindings";
@@ -10,7 +9,6 @@ type AutoSubmitOptionValue = AutoSubmitKey | "off";
 
 export const AutoSubmit: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const inputID = useId();
   const osType = useOsType();
   const { getSetting, updateSetting, isUpdating } = useSettings();
 
@@ -57,18 +55,14 @@ export const AutoSubmit: React.FC = React.memo(() => {
   };
 
   return (
-    <Field
+    <Selector
       label={t("settings.advanced.autoSubmit.title")}
       description={t("settings.advanced.autoSubmit.description")}
-      inputID={inputID}
+      options={autoSubmitOptions}
+      value={selectedValue}
+      onChange={handleAutoSubmitSelect}
+      isDisabled={isUpdating("auto_submit") || isUpdating("auto_submit_key")}
       width="100%"
-    >
-      <Dropdown
-        options={autoSubmitOptions}
-        selectedValue={selectedValue}
-        onSelect={handleAutoSubmitSelect}
-        disabled={isUpdating("auto_submit") || isUpdating("auto_submit_key")}
-      />
-    </Field>
+    />
   );
 });

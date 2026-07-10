@@ -1,9 +1,8 @@
 import React, { useId, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, HStack } from "@astryxdesign/core";
+import { Field, HStack, IconButton, Selector } from "@astryxdesign/core";
 import { commands } from "@/bindings";
-import { Dropdown } from "../ui/Dropdown";
-import { ResetButton } from "../ui/ResetButton";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 
 export const ClamshellMicrophoneSelector: React.FC = React.memo(() => {
@@ -16,7 +15,6 @@ export const ClamshellMicrophoneSelector: React.FC = React.memo(() => {
     isUpdating,
     isLoading,
     audioDevices,
-    refreshAudioDevices,
   } = useSettings();
 
   const [isLaptop, setIsLaptop] = useState<boolean>(false);
@@ -70,25 +68,29 @@ export const ClamshellMicrophoneSelector: React.FC = React.memo(() => {
       width="100%"
     >
       <HStack gap={1}>
-        <Dropdown
+        <Selector
+          label={t("settings.debug.clamshellMicrophone.title")}
+          isLabelHidden
           options={microphoneOptions}
-          selectedValue={selectedClamshellMicrophone}
-          onSelect={handleClamshellMicrophoneSelect}
+          value={selectedClamshellMicrophone}
+          onChange={handleClamshellMicrophoneSelect}
           placeholder={
             isLoading || audioDevices.length === 0
               ? t("common.loading")
               : t("settings.sound.microphone.placeholder")
           }
-          disabled={
+          isDisabled={
             isUpdating("clamshell_microphone") ||
             isLoading ||
             audioDevices.length === 0
           }
-          onRefresh={refreshAudioDevices}
         />
-        <ResetButton
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
           onClick={handleReset}
-          disabled={isUpdating("clamshell_microphone") || isLoading}
+          isDisabled={isUpdating("clamshell_microphone") || isLoading}
+          variant="ghost"
         />
       </HStack>
     </Field>

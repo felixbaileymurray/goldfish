@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
-import { Input } from "../ui/Input";
+import { TextInput } from "@astryxdesign/core";
 import { SettingContainer } from "../ui/SettingContainer";
 
 interface HistoryLimitProps {
@@ -18,8 +18,8 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
 
   const historyLimit = getSetting("history_limit") ?? 5;
 
-  const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value, 10);
+  const handleChange = (val: string) => {
+    const value = parseInt(val, 10);
     if (!isNaN(value) && value >= 0) {
       updateSetting("history_limit", value);
     }
@@ -34,13 +34,12 @@ export const HistoryLimit: React.FC<HistoryLimitProps> = ({
       layout="horizontal"
     >
       <div className="flex items-center space-x-2">
-        <Input
-          type="number"
-          min="0"
-          max="1000"
-          value={historyLimit}
+        <TextInput
+          label={t("settings.debug.historyLimit.title")}
+          isLabelHidden
+          value={String(historyLimit)}
           onChange={handleChange}
-          disabled={isUpdating("history_limit")}
+          isDisabled={isUpdating("history_limit")}
           className="w-20"
         />
         <span className="text-sm text-text">

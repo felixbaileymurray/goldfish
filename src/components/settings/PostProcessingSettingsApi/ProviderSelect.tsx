@@ -1,8 +1,8 @@
 import React from "react";
-import { Dropdown, type DropdownOption } from "../../ui/Dropdown";
+import { Selector } from "@astryxdesign/core";
 
 interface ProviderSelectProps {
-  options: DropdownOption[];
+  options: Array<{ value: string; label: string }>;
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
@@ -11,12 +11,13 @@ interface ProviderSelectProps {
 export const ProviderSelect: React.FC<ProviderSelectProps> = React.memo(
   ({ options, value, onChange, disabled }) => {
     return (
-      <Dropdown
+      <Selector
+        label="Provider"
+        isLabelHidden
         options={options}
-        selectedValue={value}
-        onSelect={onChange}
-        disabled={disabled}
-        className="flex-1"
+        value={value}
+        onChange={onChange}
+        isDisabled={disabled}
       />
     );
   },

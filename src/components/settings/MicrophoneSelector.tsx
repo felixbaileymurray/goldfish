@@ -1,8 +1,7 @@
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { Field, HStack } from "@astryxdesign/core";
-import { ResetButton } from "../ui/ResetButton";
+import { Field, HStack, IconButton, Selector } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 
 export const MicrophoneSelector: React.FC = React.memo(() => {
@@ -44,25 +43,29 @@ export const MicrophoneSelector: React.FC = React.memo(() => {
       width="100%"
     >
       <HStack gap={1}>
-        <Dropdown
+        <Selector
+          label={t("settings.sound.microphone.title")}
+          isLabelHidden
           options={microphoneOptions}
-          selectedValue={selectedMicrophone}
-          onSelect={handleMicrophoneSelect}
+          value={selectedMicrophone}
+          onChange={handleMicrophoneSelect}
           placeholder={
             isLoading || audioDevices.length === 0
               ? t("settings.sound.microphone.loading")
               : t("settings.sound.microphone.placeholder")
           }
-          disabled={
+          isDisabled={
             isUpdating("selected_microphone") ||
             isLoading ||
             audioDevices.length === 0
           }
-          onRefresh={refreshAudioDevices}
         />
-        <ResetButton
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
           onClick={handleReset}
-          disabled={isUpdating("selected_microphone") || isLoading}
+          isDisabled={isUpdating("selected_microphone") || isLoading}
+          variant="ghost"
         />
       </HStack>
     </Field>

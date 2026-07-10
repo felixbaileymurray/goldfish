@@ -2,10 +2,9 @@ import { useCallback, useMemo, useState } from "react";
 import { useSettings } from "../../../hooks/useSettings";
 import { commands, type PostProcessProvider } from "@/bindings";
 import type { ModelOption } from "./types";
-import type { DropdownOption } from "../../ui/Dropdown";
 
 type PostProcessProviderState = {
-  providerOptions: DropdownOption[];
+  providerOptions: Array<{ value: string; label: string }>;
   selectedProviderId: string;
   selectedProvider: PostProcessProvider | undefined;
   isCustomProvider: boolean;
@@ -65,7 +64,9 @@ export const usePostProcessProviderState = (): PostProcessProviderState => {
   const apiKey = settings?.post_process_api_keys?.[selectedProviderId] ?? "";
   const model = settings?.post_process_models?.[selectedProviderId] ?? "";
 
-  const providerOptions = useMemo<DropdownOption[]>(() => {
+  const providerOptions = useMemo<
+    Array<{ value: string; label: string }>
+  >(() => {
     return providers.map((provider) => ({
       value: provider.id,
       label: provider.label,

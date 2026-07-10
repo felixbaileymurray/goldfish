@@ -1,16 +1,20 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { ModelOption } from "./types";
-import { Select } from "../../ui/Select";
+import {
+  Typeahead,
+  type SearchableItem,
+  type SearchSource,
+} from "@astryxdesign/core";
+
+const CREATE_PREFIX = "__create__:";
 
 type ModelSelectProps = {
   value: string;
   options: ModelOption[];
-  disabled?: boolean;
+  isDisabled?: boolean;
   placeholder?: string;
-  isLoading?: boolean;
   onSelect: (value: string) => void;
   onCreate: (value: string) => void;
-  onBlur: () => void;
   className?: string;
 };
 
@@ -18,35 +22,61 @@ export const ModelSelect: React.FC<ModelSelectProps> = React.memo(
   ({
     value,
     options,
-    disabled,
+    isDisabled,
     placeholder,
-    isLoading,
     onSelect,
     onCreate,
-    onBlur,
-    className = "flex-1 min-w-[360px]",
+    className,
   }) => {
-    const handleCreate = (inputValue: string) => {
-      const trimmed = inputValue.trim();
-      if (!trimmed) return;
-      onCreate(trimmed);
+    const source = useMemo<SearchSource<SearchableItem>>(
+      () => ({
+        bootstrap: () => options.map((o) => ({ id: o.value, label: o.label })),
+        search: (query: string) => {
+          const q = query.toLowerCase().trim();
+          const matches = options
+            .filter((o) => o.label.toLowerCase().includes(q))
+            .map((o) => ({ id: o.value, label: o.label }));
+          const exactMatch = options.some(
+            (o) => o.value.toLowerCase() === q || o.label.toLowerCase() === q,
+          );
+          if (q && !exactMatch) {
+            matches.push({
+              id: `${CREATE_PREFIX}${query}`,
+              label: `Use "${query}"`,
+            });
+          }
+          return matches;
+        },
+      }),
+      [options],
+    );
+
+    const selectedItem: SearchableItem | null = value
+      ? { id: value, label: value }
+      : null;
+
+    const handleChange = (item: SearchableItem | null) => {
+      if (!item) return;
+      if (item.id.startsWith(CREATE_PREFIX)) {
+        onCreate(item.id.slice(CREATE_PREFIX.length));
+      } else {
+        onSelect(item.id);
+      }
     };
 
-    const computedClassName = `text-sm ${className}`;
-
     return (
-      <Select
-        className={computedClassName}
-        value={value || null}
-        options={options}
-        onChange={(selected) => onSelect(selected ?? "")}
-        onCreateOption={handleCreate}
-        onBlur={onBlur}
+      <Typeahead
+        label="Model"
+        isLabelHidden
+        searchSource={source}
+        value={selectedItem}
+        onChange={handleChange}
+        isDisabled={isDisabled}
         placeholder={placeholder}
-        disabled={disabled}
-        isLoading={isLoading}
-        isCreatable
-        formatCreateLabel={(input) => `Use "${input}"`}
+        hasEntriesOnFocus
+        hasClear
+        debounceMs={0}
+        className={className}
       />
     );
   },

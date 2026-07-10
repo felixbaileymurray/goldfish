@@ -1,8 +1,7 @@
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, HStack } from "@astryxdesign/core";
-import { Dropdown } from "../ui/Dropdown";
-import { ResetButton } from "../ui/ResetButton";
+import { Field, HStack, IconButton, Selector } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 import type { AudioDevice } from "@/bindings";
 
@@ -21,7 +20,6 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
       isUpdating,
       isLoading,
       outputDevices,
-      refreshOutputDevices,
     } = useSettings();
 
     const selectedOutputDevice =
@@ -51,28 +49,32 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
         width="100%"
       >
         <HStack gap={1}>
-          <Dropdown
+          <Selector
+            label={t("settings.sound.outputDevice.title")}
+            isLabelHidden
             options={outputDeviceOptions}
-            selectedValue={selectedOutputDevice}
-            onSelect={handleOutputDeviceSelect}
+            value={selectedOutputDevice}
+            onChange={handleOutputDeviceSelect}
             placeholder={
               isLoading || outputDevices.length === 0
                 ? t("settings.sound.outputDevice.loading")
                 : t("settings.sound.outputDevice.placeholder")
             }
-            disabled={
+            isDisabled={
               disabled ||
               isUpdating("selected_output_device") ||
               isLoading ||
               outputDevices.length === 0
             }
-            onRefresh={refreshOutputDevices}
           />
-          <ResetButton
+          <IconButton
+            icon={<ResetIcon />}
+            label={t("common.reset")}
             onClick={handleReset}
-            disabled={
+            isDisabled={
               disabled || isUpdating("selected_output_device") || isLoading
             }
+            variant="ghost"
           />
         </HStack>
       </Field>

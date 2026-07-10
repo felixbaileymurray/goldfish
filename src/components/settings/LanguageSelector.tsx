@@ -1,7 +1,7 @@
 import React, { useId, useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Field, HStack } from "@astryxdesign/core";
-import { ResetButton } from "../ui/ResetButton";
+import { Field, HStack, IconButton } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 import { LANGUAGES } from "../../lib/constants/languages";
 
@@ -174,9 +174,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             </div>
           )}
         </div>
-        <ResetButton
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
           onClick={handleReset}
-          disabled={isUpdating("selected_language")}
+          isDisabled={isUpdating("selected_language")}
+          variant="ghost"
         />
       </HStack>
       {isUpdating("selected_language") && (

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "@/bindings";
-import { Field, Skeleton } from "@astryxdesign/core";
-import { PathDisplay } from "../ui/PathDisplay";
+import { Button, Field, Skeleton } from "@astryxdesign/core";
 
 export const AppDataDirectory: React.FC = () => {
   const { t } = useTranslation();
@@ -56,11 +55,18 @@ export const AppDataDirectory: React.FC = () => {
       {loading ? (
         <Skeleton height={36} />
       ) : (
-        <PathDisplay
-          path={appDirPath}
-          onOpen={handleOpen}
-          disabled={!appDirPath}
-        />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0 px-2 py-2 bg-mid-gray/10 border border-mid-gray/80 rounded-lg text-xs font-mono break-all select-text cursor-text">
+            {appDirPath}
+          </div>
+          <Button
+            label={t("common.open")}
+            onClick={handleOpen}
+            variant="secondary"
+            size="sm"
+            isDisabled={!appDirPath}
+          />
+        </div>
       )}
     </Field>
   );
