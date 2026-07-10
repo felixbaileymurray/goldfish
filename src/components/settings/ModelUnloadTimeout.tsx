@@ -1,20 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useId, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
 import { commands, type ModelUnloadTimeout } from "@/bindings";
 import { Dropdown } from "../ui/Dropdown";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field } from "@astryxdesign/core";
 
-interface ModelUnloadTimeoutProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const ModelUnloadTimeoutSetting: React.FC<ModelUnloadTimeoutProps> = ({
-  descriptionMode = "inline",
-  grouped = false,
-}) => {
+export const ModelUnloadTimeoutSetting: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { settings, getSetting, updateSetting } = useSettings();
 
   const timeoutOptions = [
@@ -74,11 +67,11 @@ export const ModelUnloadTimeoutSetting: React.FC<ModelUnloadTimeoutProps> = ({
   }, [settings]);
 
   return (
-    <SettingContainer
-      title={t("settings.advanced.modelUnload.title")}
+    <Field
+      label={t("settings.advanced.modelUnload.title")}
       description={t("settings.advanced.modelUnload.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
+      inputID={inputID}
+      width="100%"
     >
       <Dropdown
         options={options}
@@ -90,6 +83,6 @@ export const ModelUnloadTimeoutSetting: React.FC<ModelUnloadTimeoutProps> = ({
         }
         disabled={false}
       />
-    </SettingContainer>
+    </Field>
   );
 };

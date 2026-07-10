@@ -1,16 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Slider } from "../../ui/Slider";
+import { Slider } from "@astryxdesign/core";
 import { useSettings } from "../../../hooks/useSettings";
 
-interface WordCorrectionThresholdProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const WordCorrectionThreshold: React.FC<
-  WordCorrectionThresholdProps
-> = ({ descriptionMode = "tooltip", grouped = false }) => {
+export const WordCorrectionThreshold: React.FC = () => {
   const { t } = useTranslation();
   const { settings, updateSetting } = useSettings();
 
@@ -26,8 +19,9 @@ export const WordCorrectionThreshold: React.FC<
       max={1.0}
       label={t("settings.debug.wordCorrectionThreshold.title")}
       description={t("settings.debug.wordCorrectionThreshold.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
+      formatValue={(v) => v.toFixed(2)}
+      valueDisplay="text"
+      width="100%"
     />
   );
 };

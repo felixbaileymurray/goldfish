@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { SettingsGroup } from "../../ui/SettingsGroup";
-import { SettingContainer } from "../../ui/SettingContainer";
+import { Code, Field, HStack, Text } from "@astryxdesign/core";
+import { SettingsPage } from "../shared/SettingsPage";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 import { Button } from "../../ui/Button";
 import { AppDataDirectory } from "../AppDataDirectory";
 import { AppLanguageSelector } from "../AppLanguageSelector";
@@ -13,6 +14,11 @@ import UpdateChecker from "../../update-checker";
 export const AboutSettings: React.FC = () => {
   const { t } = useTranslation();
   const [version, setVersion] = useState("");
+  const versionInputID = useId();
+  const supportInputID = useId();
+  const sourceInputID = useId();
+  const whisperInputID = useId();
+  const handyInputID = useId();
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -37,35 +43,42 @@ export const AboutSettings: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <SettingsGroup title={t("settings.about.title")}>
-        <AppLanguageSelector descriptionMode="tooltip" grouped={true} />
-        <SettingContainer
-          title={t("settings.about.version.title")}
-          description={t("settings.about.version.description")}
-          grouped={true}
-        >
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line i18next/no-literal-string */}
-            <span className="text-sm font-mono">v{version}</span>
-            <UpdateChecker />
-          </div>
-        </SettingContainer>
+    <SettingsPage
+      title={t("settings.about.title")}
+      description={t("settings.about.description")}
+    >
+      <SettingsFormGroup>
+        <AppLanguageSelector />
 
-        <SettingContainer
-          title={t("settings.about.supportDevelopment.title")}
+        <Field
+          label={t("settings.about.version.title")}
+          description={t("settings.about.version.description")}
+          inputID={versionInputID}
+          width="100%"
+        >
+          <HStack gap={3} align="center">
+            {/* eslint-disable-next-line i18next/no-literal-string */}
+            <Code>v{version}</Code>
+            <UpdateChecker />
+          </HStack>
+        </Field>
+
+        <Field
+          label={t("settings.about.supportDevelopment.title")}
           description={t("settings.about.supportDevelopment.description")}
-          grouped={true}
+          inputID={supportInputID}
+          width="100%"
         >
           <Button variant="primary" size="md" onClick={handleDonateClick}>
             {t("settings.about.supportDevelopment.button")}
           </Button>
-        </SettingContainer>
+        </Field>
 
-        <SettingContainer
-          title={t("settings.about.sourceCode.title")}
+        <Field
+          label={t("settings.about.sourceCode.title")}
           description={t("settings.about.sourceCode.description")}
-          grouped={true}
+          inputID={sourceInputID}
+          width="100%"
         >
           <Button
             variant="secondary"
@@ -76,28 +89,29 @@ export const AboutSettings: React.FC = () => {
           >
             {t("settings.about.sourceCode.button")}
           </Button>
-        </SettingContainer>
+        </Field>
 
-        <AppDataDirectory descriptionMode="tooltip" grouped={true} />
-        <LogDirectory grouped={true} />
-      </SettingsGroup>
+        <AppDataDirectory />
+        <LogDirectory />
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.about.acknowledgments.title")}>
-        <SettingContainer
-          title={t("settings.about.acknowledgments.whisper.title")}
+      <SettingsFormGroup title={t("settings.about.acknowledgments.title")}>
+        <Field
+          label={t("settings.about.acknowledgments.whisper.title")}
           description={t("settings.about.acknowledgments.whisper.description")}
-          grouped={true}
-          layout="stacked"
+          inputID={whisperInputID}
+          width="100%"
         >
-          <div className="text-sm text-mid-gray">
+          <Text size="sm" color="secondary">
             {t("settings.about.acknowledgments.whisper.details")}
-          </div>
-        </SettingContainer>
+          </Text>
+        </Field>
         {/* eslint-disable i18next/no-literal-string */}
-        <SettingContainer
-          title="Handy"
+        <Field
+          label="Handy"
           description="Goldfish is built on Handy, the open-source speech-to-text app by cjpais."
-          grouped={true}
+          inputID={handyInputID}
+          width="100%"
         >
           <Button
             variant="secondary"
@@ -106,9 +120,9 @@ export const AboutSettings: React.FC = () => {
           >
             View upstream
           </Button>
-        </SettingContainer>
+        </Field>
         {/* eslint-enable i18next/no-literal-string */}
-      </SettingsGroup>
-    </div>
+      </SettingsFormGroup>
+    </SettingsPage>
   );
 };

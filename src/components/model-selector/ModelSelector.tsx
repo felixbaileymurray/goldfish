@@ -1,11 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { commands } from "@/bindings";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+} from "@astryxdesign/core/DropdownMenu";
+import { StatusDot, type StatusDotVariant } from "@astryxdesign/core/StatusDot";
+import { Badge } from "@astryxdesign/core/Badge";
 import { getTranslatedModelName } from "../../lib/utils/modelTranslation";
 import { useModelStore } from "../../stores/modelStore";
-import ModelStatusButton from "./ModelStatusButton";
-import ModelDropdown from "./ModelDropdown";
 import DownloadProgressDisplay from "./DownloadProgressDisplay";
 
 import { ModelStateEvent } from "@/lib/types/events";
@@ -24,6 +28,28 @@ interface ModelSelectorProps {
   onError?: (error: string) => void;
 }
 
+const STATUS_DOT_VARIANT: Record<ModelStatus, StatusDotVariant> = {
+  ready: "success",
+  loading: "warning",
+  downloading: "accent",
+  verifying: "warning",
+  extracting: "warning",
+  error: "error",
+  unloaded: "neutral",
+  none: "error",
+};
+
+const STATUS_DOT_PULSING: Record<ModelStatus, boolean> = {
+  ready: false,
+  loading: true,
+  downloading: true,
+  verifying: true,
+  extracting: true,
+  error: false,
+  unloaded: false,
+  none: false,
+};
+
 const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
   const { t } = useTranslation();
   const {
@@ -41,8 +67,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   // Track pending model switch for optimistic display
   const [pendingModelId, setPendingModelId] = useState<string | null>(null);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const displayModelId = pendingModelId || currentModel;
 
@@ -229,28 +253,54 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({ onError }) => {
     return modelStatus;
   };
 
+  const displayStatus = getDisplayStatus();
+  const displayText = getModelDisplayText();
+  const downloadedModels = models.filter((m) => m.is_downloaded);
+
   return (
     <>
-      {/* Model Status and Switcher */}
-      <div className="relative" ref={dropdownRef}>
-        <ModelStatusButton
-          status={getDisplayStatus()}
-          displayText={getModelDisplayText()}
-          isDropdownOpen={showModelDropdown}
-          onClick={() => setShowModelDropdown(!showModelDropdown)}
-        />
-
-        {/* Model Dropdown */}
-        {showModelDropdown && (
-          <ModelDropdown
-            models={models}
-            currentModelId={displayModelId}
-            onModelSelect={handleModelSelect}
-            targetRef={dropdownRef}
-            onClose={() => setShowModelDropdown(false)}
+      <DropdownMenu
+        isMenuOpen={showModelDropdown}
+        onOpenChange={setShowModelDropdown}
+        placement="above"
+        button={{
+          label: displayText,
+          variant: "ghost",
+          size: "sm",
+          className: "max-w-40",
+          icon: (
+            <StatusDot
+              variant={STATUS_DOT_VARIANT[displayStatus]}
+              label={displayText}
+              isPulsing={STATUS_DOT_PULSING[displayStatus]}
+            />
+          ),
+        }}
+        hasChevron
+      >
+        {downloadedModels.length > 0 ? (
+          downloadedModels.map((model) => (
+            <DropdownMenuItem
+              key={model.id}
+              label={getTranslatedModelName(model, t)}
+              description={
+                model.is_custom ? t("modelSelector.custom") : undefined
+              }
+              onClick={() => handleModelSelect(model.id)}
+              endContent={
+                displayModelId === model.id ? (
+                  <Badge variant="info" label={t("modelSelector.active")} />
+                ) : undefined
+              }
+            />
+          ))
+        ) : (
+          <DropdownMenuItem
+            label={t("modelSelector.noModelsAvailable")}
+            isDisabled
           />
         )}
-      </div>
+      </DropdownMenu>
 
       {/* Download Progress Bar for Models */}
       <DownloadProgressDisplay

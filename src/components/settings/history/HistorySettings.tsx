@@ -5,6 +5,13 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { FolderOpen, Import, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { Card } from "@astryxdesign/core/Card";
+import { HStack } from "@astryxdesign/core/HStack";
+import { VStack } from "@astryxdesign/core/VStack";
+import { Text } from "@astryxdesign/core/Text";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Spinner } from "@astryxdesign/core/Spinner";
+import { Button as AstryxButton } from "@astryxdesign/core/Button";
 import {
   commands,
   events,
@@ -12,31 +19,9 @@ import {
   type HistoryUpdatePayload,
 } from "@/bindings";
 import { useOsType } from "@/hooks/useOsType";
-import { Button } from "../../ui/Button";
 import { EntryCard } from "../../entries/EntryCard";
 
 const PAGE_SIZE = 30;
-
-interface OpenRecordingsButtonProps {
-  onClick: () => void;
-  label: string;
-}
-
-const OpenRecordingsButton: React.FC<OpenRecordingsButtonProps> = ({
-  onClick,
-  label,
-}) => (
-  <Button
-    onClick={onClick}
-    variant="secondary"
-    size="sm"
-    className="flex items-center gap-2"
-    title={label}
-  >
-    <FolderOpen className="w-4 h-4" />
-    <span>{label}</span>
-  </Button>
-);
 
 export const HistorySettings: React.FC = () => {
   const { t } = useTranslation();
@@ -260,69 +245,62 @@ export const HistorySettings: React.FC = () => {
 
   if (loading) {
     content = (
-      <div className="px-4 py-3 text-center text-text/60">
-        {t("entries.loading")}
-      </div>
+      <HStack hAlign="center" vAlign="center" padding={6} gap={2}>
+        <Spinner size="sm" />
+        <Text color="secondary">{t("entries.loading")}</Text>
+      </HStack>
     );
   } else if (entries.length === 0) {
-    content = (
-      <div className="px-4 py-3 text-center text-text/60">
-        {t("entries.empty")}
-      </div>
-    );
+    content = <EmptyState title={t("entries.empty")} />;
   } else {
     content = (
       <>
-        <div className="divide-y divide-mid-gray/20">
-          {entries.map((entry) => (
-            <EntryCard
-              key={entry.id}
-              entry={entry}
-              onToggleSaved={() => toggleSaved(entry.id)}
-              copyText={copyToClipboard}
-              getAudioUrl={getAudioUrl}
-              deleteAudio={deleteAudioEntry}
-              retryTranscription={retryHistoryEntry}
-              summarizeEntry={summarizeEntry}
-            />
-          ))}
-        </div>
+        {entries.map((entry) => (
+          <EntryCard
+            key={entry.id}
+            entry={entry}
+            onToggleSaved={() => toggleSaved(entry.id)}
+            copyText={copyToClipboard}
+            getAudioUrl={getAudioUrl}
+            deleteAudio={deleteAudioEntry}
+            retryTranscription={retryHistoryEntry}
+            summarizeEntry={summarizeEntry}
+          />
+        ))}
         {/* Sentinel for infinite scroll */}
-        <div ref={sentinelRef} className="h-1" />
+        <div ref={sentinelRef} />
       </>
     );
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div className="space-y-2">
-        <div className="px-4 flex items-center justify-end gap-2">
-          <Button
-            onClick={importAudioFile}
-            variant="secondary"
-            size="sm"
-            disabled={importing}
-            className="flex items-center gap-2"
-            title={t("entries.import")}
-          >
-            {importing ? (
+    <VStack gap={2} maxWidth={768} width="100%">
+      <HStack justify="end" gap={2}>
+        <AstryxButton
+          label={importing ? t("entries.importing") : t("entries.import")}
+          onClick={importAudioFile}
+          variant="secondary"
+          size="sm"
+          isDisabled={importing}
+          icon={
+            importing ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Import className="w-4 h-4" />
-            )}
-            <span>
-              {importing ? t("entries.importing") : t("entries.import")}
-            </span>
-          </Button>
-          <OpenRecordingsButton
-            onClick={openRecordingsFolder}
-            label={t("entries.openFolder")}
-          />
-        </div>
-        <div className="bg-background border border-mid-gray/20 rounded-lg overflow-visible">
-          {content}
-        </div>
-      </div>
-    </div>
+            )
+          }
+        />
+        <AstryxButton
+          label={t("entries.openFolder")}
+          onClick={openRecordingsFolder}
+          variant="secondary"
+          size="sm"
+          icon={<FolderOpen className="w-4 h-4" />}
+        />
+      </HStack>
+      <Card variant="default" padding={0}>
+        {content}
+      </Card>
+    </VStack>
   );
 };

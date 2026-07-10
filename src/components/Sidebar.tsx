@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Cog, List } from "lucide-react";
+import { SideNav, SideNavItem } from "@astryxdesign/core/SideNav";
 import GoldfishTextLogo from "./icons/GoldfishTextLogo";
 
 export type AppView = "main" | "settings";
@@ -22,36 +23,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const isSettingsActive = view === "settings";
 
   return (
-    <div className="flex flex-col w-40 items-center px-2">
-      <GoldfishTextLogo width={120} className="m-4" />
-
-      {/* Primary nav */}
-      <div className="flex flex-col w-full items-center gap-1 pt-2 flex-1">
-        <div
-          className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors ${
-            isEntriesActive
-              ? "bg-logo-primary/80"
-              : "hover:bg-mid-gray/20 hover:opacity-100 opacity-85"
-          }`}
-          onClick={onSelectEntries}
-        >
-          <List width={24} height={24} className="shrink-0" />
-          <p className="text-sm font-medium truncate">{t("sidebar.entries")}</p>
-        </div>
-      </div>
-
-      {/* Settings control — aligned with bottom edge of the white inner panel */}
-      <div
-        className={`flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors mb-1 ${
-          isSettingsActive
-            ? "bg-logo-primary/80"
-            : "hover:bg-mid-gray/20 hover:opacity-100 opacity-85"
-        }`}
-        onClick={onOpenSettings}
-      >
-        <Cog width={20} height={20} className="shrink-0" />
-        <p className="text-sm font-medium truncate">{t("sidebar.settings")}</p>
-      </div>
-    </div>
+    <SideNav
+      className="shrink-0"
+      style={{ width: 160 }}
+      header={<GoldfishTextLogo width={120} className="mx-auto my-4 block" />}
+      footerIcons={
+        <SideNavItem
+          label={t("sidebar.settings")}
+          icon={<Cog width={18} height={18} />}
+          isSelected={isSettingsActive}
+          onClick={onOpenSettings}
+        />
+      }
+    >
+      <SideNavItem
+        label={t("sidebar.entries")}
+        icon={<List width={20} height={20} />}
+        isSelected={isEntriesActive}
+        onClick={onSelectEntries}
+      />
+    </SideNav>
   );
 };

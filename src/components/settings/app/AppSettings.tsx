@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { SettingsGroup } from "../../ui/SettingsGroup";
+import { SettingsPage } from "../shared/SettingsPage";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 import { StartHidden } from "../StartHidden";
 import { AutostartToggle } from "../AutostartToggle";
 import { ShowTrayIcon } from "../ShowTrayIcon";
@@ -19,41 +20,35 @@ export const AppSettings: React.FC = () => {
   const experimentalEnabled = getSetting("experimental_enabled") || false;
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.app.title")}
-        </h1>
-        <p className="text-sm text-text/60">{t("settings.app.description")}</p>
-      </div>
-      <SettingsGroup title={t("settings.app.startup.title")}>
-        <StartHidden descriptionMode="tooltip" grouped={true} />
-        <AutostartToggle descriptionMode="tooltip" grouped={true} />
-        <ShowTrayIcon descriptionMode="tooltip" grouped={true} />
-        <UpdateChecksToggle descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+    <SettingsPage
+      title={t("settings.app.title")}
+      description={t("settings.app.description")}
+    >
+      <SettingsFormGroup title={t("settings.app.startup.title")}>
+        <StartHidden />
+        <AutostartToggle />
+        <ShowTrayIcon />
+        <UpdateChecksToggle />
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.app.display.title")}>
-        <ShowOverlay descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+      <SettingsFormGroup title={t("settings.app.display.title")}>
+        <ShowOverlay />
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.app.performance.title")}>
-        <ModelUnloadTimeoutSetting descriptionMode="tooltip" grouped={true} />
-        <AccelerationSelector descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+      <SettingsFormGroup title={t("settings.app.performance.title")}>
+        <ModelUnloadTimeoutSetting />
+        <AccelerationSelector />
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.app.experimental.title")}>
-        <ExperimentalToggle descriptionMode="tooltip" grouped={true} />
+      <SettingsFormGroup title={t("settings.app.experimental.title")}>
+        <ExperimentalToggle />
         {experimentalEnabled && (
           <>
-            <KeyboardImplementationSelector
-              descriptionMode="tooltip"
-              grouped={true}
-            />
-            <LazyStreamClose descriptionMode="tooltip" grouped={true} />
+            <KeyboardImplementationSelector />
+            <LazyStreamClose />
           </>
         )}
-      </SettingsGroup>
-    </div>
+      </SettingsFormGroup>
+    </SettingsPage>
   );
 };

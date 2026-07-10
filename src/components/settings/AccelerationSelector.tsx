@@ -1,6 +1,6 @@
-import { type FC, useEffect, useState } from "react";
+import { type FC, useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field } from "@astryxdesign/core";
 import { Dropdown, type DropdownOption } from "../ui/Dropdown";
 import { useSettings } from "../../hooks/useSettings";
 import { commands } from "@/bindings";
@@ -16,11 +16,6 @@ const ORT_LABELS: Record<OrtAcceleratorSetting, string> = {
   directml: "DirectML",
   rocm: "ROCm",
 };
-
-interface AccelerationSelectorProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
 
 /**
  * Whisper dropdown encodes accelerator + device in a single value:
@@ -50,11 +45,10 @@ function decodeWhisperValue(value: string): {
   return { accelerator: "auto", gpuDevice: -1 };
 }
 
-export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
-}) => {
+export const AccelerationSelector: FC = () => {
   const { t } = useTranslation();
+  const whisperInputID = useId();
+  const ortInputID = useId();
   const { getSetting, updateSetting, isUpdating } = useSettings();
 
   const [whisperOptions, setWhisperOptions] = useState<DropdownOption[]>([]);
@@ -113,12 +107,11 @@ export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
 
   return (
     <>
-      <SettingContainer
-        title={t("settings.advanced.acceleration.whisper.title")}
+      <Field
+        label={t("settings.advanced.acceleration.whisper.title")}
         description={t("settings.advanced.acceleration.whisper.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
-        layout="horizontal"
+        inputID={whisperInputID}
+        width="100%"
       >
         <Dropdown
           options={whisperOptions}
@@ -129,14 +122,13 @@ export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
             isUpdating("whisper_gpu_device")
           }
         />
-      </SettingContainer>
+      </Field>
       {ortOptions.length > 2 && (
-        <SettingContainer
-          title={t("settings.advanced.acceleration.ort.title")}
+        <Field
+          label={t("settings.advanced.acceleration.ort.title")}
           description={t("settings.advanced.acceleration.ort.description")}
-          descriptionMode={descriptionMode}
-          grouped={grouped}
-          layout="horizontal"
+          inputID={ortInputID}
+          width="100%"
         >
           <Dropdown
             options={ortOptions}
@@ -146,7 +138,7 @@ export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
             }
             disabled={isUpdating("ort_accelerator")}
           />
-        </SettingContainer>
+        </Field>
       )}
     </>
   );

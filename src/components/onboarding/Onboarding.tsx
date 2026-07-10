@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { ModelInfo } from "@/bindings";
+import { VStack } from "@astryxdesign/core/VStack";
+import { Text } from "@astryxdesign/core/Text";
 import type { ModelCardStatus } from "./ModelCard";
 import ModelCard from "./ModelCard";
 import GoldfishTextLogo from "../icons/GoldfishTextLogo";
@@ -90,15 +92,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
 
   return (
     <div className="h-screen w-screen flex flex-col p-6 gap-4 inset-0">
-      <div className="flex flex-col items-center gap-2 shrink-0">
+      <VStack gap={2} align="center" className="shrink-0">
         <GoldfishTextLogo width={200} />
-        <p className="text-text/70 max-w-md font-medium mx-auto">
+        <Text
+          color="secondary"
+          weight="medium"
+          justify="center"
+          className="max-w-md mx-auto"
+        >
           {t("onboarding.subtitle")}
-        </p>
-      </div>
+        </Text>
+      </VStack>
 
       <div className="max-w-[600px] w-full mx-auto text-center flex-1 flex flex-col min-h-0">
-        <div className="flex flex-col gap-4 pb-6">
+        <VStack gap={4} className="pb-6">
           {models
             .filter((m: ModelInfo) => !m.is_downloaded)
             .filter((model: ModelInfo) => model.is_recommended)
@@ -135,7 +142,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
                 downloadSpeed={getModelDownloadSpeed(model.id)}
               />
             ))}
-        </div>
+        </VStack>
       </div>
     </div>
   );

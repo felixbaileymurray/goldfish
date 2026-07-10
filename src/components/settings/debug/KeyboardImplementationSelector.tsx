@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { SettingContainer } from "../../ui/SettingContainer";
+import { Field } from "@astryxdesign/core";
 import { Dropdown, type DropdownOption } from "../../ui/Dropdown";
 import { useSettings } from "../../../hooks/useSettings";
 import { commands } from "@/bindings";
@@ -11,15 +11,9 @@ const KEYBOARD_IMPLEMENTATION_OPTIONS: DropdownOption[] = [
   { value: "handy_keys", label: "Handy Keys" },
 ];
 
-interface KeyboardImplementationSelectorProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const KeyboardImplementationSelector: React.FC<
-  KeyboardImplementationSelectorProps
-> = ({ descriptionMode = "tooltip", grouped = false }) => {
+export const KeyboardImplementationSelector: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, isUpdating, refreshSettings } = useSettings();
   const currentImplementation =
     getSetting("keyboard_implementation") ?? "tauri";
@@ -52,12 +46,11 @@ export const KeyboardImplementationSelector: React.FC<
   };
 
   return (
-    <SettingContainer
-      title={t("settings.debug.keyboardImplementation.title")}
+    <Field
+      label={t("settings.debug.keyboardImplementation.title")}
       description={t("settings.debug.keyboardImplementation.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      layout="horizontal"
+      inputID={inputID}
+      width="100%"
     >
       <Dropdown
         options={KEYBOARD_IMPLEMENTATION_OPTIONS}
@@ -65,6 +58,6 @@ export const KeyboardImplementationSelector: React.FC<
         onSelect={handleSelect}
         disabled={isUpdating("keyboard_implementation")}
       />
-    </SettingContainer>
+    </Field>
   );
 };

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { SettingContainer } from "../../ui/SettingContainer";
+import { Field } from "@astryxdesign/core";
 import { Dropdown, type DropdownOption } from "../../ui/Dropdown";
 import { useSettings } from "../../../hooks/useSettings";
 import type { LogLevel } from "../../../bindings";
@@ -13,16 +13,9 @@ const LOG_LEVEL_OPTIONS: DropdownOption[] = [
   { value: "trace", label: "Trace" },
 ];
 
-interface LogLevelSelectorProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const LogLevelSelector: React.FC<LogLevelSelectorProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
-}) => {
+export const LogLevelSelector: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { settings, updateSetting, isUpdating } = useSettings();
   const currentLevel = settings?.log_level ?? "debug";
 
@@ -37,12 +30,11 @@ export const LogLevelSelector: React.FC<LogLevelSelectorProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={t("settings.debug.logLevel.title")}
+    <Field
+      label={t("settings.debug.logLevel.title")}
       description={t("settings.debug.logLevel.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      layout="horizontal"
+      inputID={inputID}
+      width="100%"
     >
       <Dropdown
         options={LOG_LEVEL_OPTIONS}
@@ -50,6 +42,6 @@ export const LogLevelSelector: React.FC<LogLevelSelectorProps> = ({
         onSelect={handleSelect}
         disabled={!settings || isUpdating("log_level")}
       />
-    </SettingContainer>
+    </Field>
   );
 };

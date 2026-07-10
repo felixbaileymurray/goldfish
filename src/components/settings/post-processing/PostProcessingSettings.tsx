@@ -1,18 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
 import { commands } from "@/bindings";
 
 import { Alert } from "../../ui/Alert";
-import {
-  Dropdown,
-  SettingContainer,
-  SettingsGroup,
-  Textarea,
-} from "@/components/ui";
+import { Dropdown, SettingContainer, Textarea } from "@/components/ui";
 import { Button } from "../../ui/Button";
 import { ResetButton } from "../../ui/ResetButton";
 import { Input } from "../../ui/Input";
+import { Field, HStack, Switch } from "@astryxdesign/core";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
 import { BaseUrlField } from "../PostProcessingSettingsApi/BaseUrlField";
@@ -20,29 +16,31 @@ import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import { usePostProcessProviderState } from "../PostProcessingSettingsApi/usePostProcessProviderState";
 import { useSettings } from "../../../hooks/useSettings";
-import { ToggleSwitch } from "../../ui/ToggleSwitch";
+import { SettingsPage } from "../shared/SettingsPage";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 
 const PostProcessingSettingsApiComponent: React.FC = () => {
   const { t } = useTranslation();
   const state = usePostProcessProviderState();
+  const providerFieldID = useId();
+  const baseUrlFieldID = useId();
+  const apiKeyFieldID = useId();
+  const modelFieldID = useId();
 
   return (
     <>
-      <SettingContainer
-        title={t("settings.postProcessing.api.provider.title")}
+      <Field
+        label={t("settings.postProcessing.api.provider.title")}
         description={t("settings.postProcessing.api.provider.description")}
-        descriptionMode="tooltip"
-        layout="horizontal"
-        grouped={true}
+        inputID={providerFieldID}
+        width="100%"
       >
-        <div className="flex items-center gap-2">
-          <ProviderSelect
-            options={state.providerOptions}
-            value={state.selectedProviderId}
-            onChange={state.handleProviderSelect}
-          />
-        </div>
-      </SettingContainer>
+        <ProviderSelect
+          options={state.providerOptions}
+          value={state.selectedProviderId}
+          onChange={state.handleProviderSelect}
+        />
+      </Field>
 
       {state.isAppleProvider ? (
         state.appleIntelligenceUnavailable ? (
@@ -53,62 +51,53 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
       ) : (
         <>
           {state.selectedProvider?.id === "custom" && (
-            <SettingContainer
-              title={t("settings.postProcessing.api.baseUrl.title")}
+            <Field
+              label={t("settings.postProcessing.api.baseUrl.title")}
               description={t("settings.postProcessing.api.baseUrl.description")}
-              descriptionMode="tooltip"
-              layout="horizontal"
-              grouped={true}
+              inputID={baseUrlFieldID}
+              width="100%"
             >
-              <div className="flex items-center gap-2">
-                <BaseUrlField
-                  value={state.baseUrl}
-                  onBlur={state.handleBaseUrlChange}
-                  placeholder={t(
-                    "settings.postProcessing.api.baseUrl.placeholder",
-                  )}
-                  disabled={state.isBaseUrlUpdating}
-                  className="min-w-[380px]"
-                />
-              </div>
-            </SettingContainer>
+              <BaseUrlField
+                value={state.baseUrl}
+                onBlur={state.handleBaseUrlChange}
+                placeholder={t(
+                  "settings.postProcessing.api.baseUrl.placeholder",
+                )}
+                disabled={state.isBaseUrlUpdating}
+                className="min-w-[380px]"
+              />
+            </Field>
           )}
 
-          <SettingContainer
-            title={t("settings.postProcessing.api.apiKey.title")}
+          <Field
+            label={t("settings.postProcessing.api.apiKey.title")}
             description={t("settings.postProcessing.api.apiKey.description")}
-            descriptionMode="tooltip"
-            layout="horizontal"
-            grouped={true}
+            inputID={apiKeyFieldID}
+            width="100%"
           >
-            <div className="flex items-center gap-2">
-              <ApiKeyField
-                value={state.apiKey}
-                onBlur={state.handleApiKeyChange}
-                placeholder={t(
-                  "settings.postProcessing.api.apiKey.placeholder",
-                )}
-                disabled={state.isApiKeyUpdating}
-                className="min-w-[320px]"
-              />
-            </div>
-          </SettingContainer>
+            <ApiKeyField
+              value={state.apiKey}
+              onBlur={state.handleApiKeyChange}
+              placeholder={t("settings.postProcessing.api.apiKey.placeholder")}
+              disabled={state.isApiKeyUpdating}
+              className="min-w-[320px]"
+            />
+          </Field>
         </>
       )}
 
       {!state.isAppleProvider && (
-        <SettingContainer
-          title={t("settings.postProcessing.api.model.title")}
+        <Field
+          label={t("settings.postProcessing.api.model.title")}
           description={
             state.isCustomProvider
               ? t("settings.postProcessing.api.model.descriptionCustom")
               : t("settings.postProcessing.api.model.descriptionDefault")
           }
-          descriptionMode="tooltip"
-          layout="stacked"
-          grouped={true}
+          inputID={modelFieldID}
+          width="100%"
         >
-          <div className="flex items-center gap-2">
+          <HStack gap={2}>
             <ModelSelect
               value={state.model}
               options={state.modelOptions}
@@ -136,8 +125,8 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
                 className={`h-4 w-4 ${state.isFetchingModels ? "animate-spin" : ""}`}
               />
             </ResetButton>
-          </div>
-        </SettingContainer>
+          </HStack>
+        </Field>
       )}
     </>
   );
@@ -432,46 +421,40 @@ export const PostProcessingSettings: React.FC = () => {
   const experimentalEnabled = getSetting("experimental_enabled") || false;
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.postProcessing.title")}
-        </h1>
-        <p className="text-sm text-text/60">
-          {t("settings.postProcessing.description")}
-        </p>
-      </div>
-
-      <SettingsGroup title={t("settings.postProcessing.api.title")}>
+    <SettingsPage
+      title={t("settings.postProcessing.title")}
+      description={t("settings.postProcessing.description")}
+    >
+      <SettingsFormGroup title={t("settings.postProcessing.api.title")}>
         <PostProcessingSettingsApi />
-      </SettingsGroup>
+      </SettingsFormGroup>
 
       {experimentalEnabled && (
-        <SettingsGroup title={t("settings.postProcessing.cleanup.title")}>
-          <ToggleSwitch
-            checked={stripFiller}
+        <SettingsFormGroup title={t("settings.postProcessing.cleanup.title")}>
+          <Switch
+            value={stripFiller}
             onChange={(value) => updateSetting("clean_strip_filler", value)}
-            isUpdating={isUpdating("clean_strip_filler")}
+            isLoading={isUpdating("clean_strip_filler")}
             label={t("settings.postProcessing.cleanup.stripFiller.label")}
             description={t(
               "settings.postProcessing.cleanup.stripFiller.description",
             )}
-            descriptionMode="tooltip"
-            grouped={true}
+            labelSpacing="spread"
+            width="100%"
           />
-          <ToggleSwitch
-            checked={convertSpoken}
+          <Switch
+            value={convertSpoken}
             onChange={(value) => updateSetting("clean_convert_spoken", value)}
-            isUpdating={isUpdating("clean_convert_spoken")}
+            isLoading={isUpdating("clean_convert_spoken")}
             label={t("settings.postProcessing.cleanup.convertSpoken.label")}
             description={t(
               "settings.postProcessing.cleanup.convertSpoken.description",
             )}
-            descriptionMode="tooltip"
-            grouped={true}
+            labelSpacing="spread"
+            width="100%"
           />
-        </SettingsGroup>
+        </SettingsFormGroup>
       )}
-    </div>
+    </SettingsPage>
   );
 };

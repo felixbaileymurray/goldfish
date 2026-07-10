@@ -9,14 +9,22 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ModelInfo } from "@/bindings";
+import { Card } from "@astryxdesign/core/Card";
+import { ClickableCard } from "@astryxdesign/core/ClickableCard";
+import { VStack } from "@astryxdesign/core/VStack";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { Badge } from "@astryxdesign/core/Badge";
+import { Divider } from "@astryxdesign/core/Divider";
+import { ProgressBar } from "@astryxdesign/core/ProgressBar";
+import { Button } from "@astryxdesign/core/Button";
+import { Tooltip } from "@astryxdesign/core/Tooltip";
 import { formatModelSize } from "../../lib/utils/format";
 import {
   getTranslatedModelDescription,
   getTranslatedModelName,
 } from "../../lib/utils/modelTranslation";
 import { LANGUAGES } from "../../lib/constants/languages";
-import Badge from "../ui/Badge";
-import { Button } from "../ui/Button";
 
 // Get display text for model's language support
 const getLanguageDisplayText = (
@@ -75,31 +83,13 @@ const ModelCard: React.FC<ModelCardProps> = ({
   const isClickable =
     status === "available" || status === "active" || status === "downloadable";
 
-  // Get translated model name and description
   const displayName = getTranslatedModelName(model, t);
   const displayDescription = getTranslatedModelDescription(model, t);
 
-  const baseClasses =
-    "flex flex-col rounded-xl px-4 py-3 gap-2 text-left transition-all duration-200";
-
-  const getVariantClasses = () => {
-    if (status === "active") {
-      return "border-2 border-logo-primary/50 bg-logo-primary/10";
-    }
-    if (isFeatured) {
-      return "border-2 border-logo-primary/25 bg-logo-primary/5";
-    }
-    return "border-2 border-mid-gray/20";
-  };
-
-  const getInteractiveClasses = () => {
-    if (!isClickable) return "";
-    if (disabled) return "opacity-50 cursor-not-allowed";
-    return "cursor-pointer hover:border-logo-primary/50 hover:bg-logo-primary/5 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] group";
-  };
+  const cardVariant =
+    status === "active" ? "blue" : isFeatured ? "blue" : "default";
 
   const handleClick = () => {
-    if (!isClickable || disabled) return;
     if (status === "downloadable" && onDownload) {
       onDownload(model.id);
     } else {
@@ -112,193 +102,219 @@ const ModelCard: React.FC<ModelCardProps> = ({
     onDelete?.(model.id);
   };
 
-  return (
-    <div
-      onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" && isClickable) handleClick();
-      }}
-      role={isClickable ? "button" : undefined}
-      tabIndex={isClickable ? 0 : undefined}
-      className={[
-        baseClasses,
-        getVariantClasses(),
-        getInteractiveClasses(),
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
+  const cardContent = (
+    <VStack gap={2} className={className}>
       {/* Top section: name/description + score bars */}
-      <div className="flex justify-between items-center w-full">
-        <div className="flex flex-col items-start flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h3
-              className={`text-base font-semibold text-text ${isClickable ? "group-hover:text-logo-primary" : ""} transition-colors`}
-            >
+      <HStack justify="between" align="center" width="100%">
+        <VStack gap={0.5} align="start" className="flex-1 min-w-0">
+          <HStack gap={2} wrap="wrap" align="center">
+            <Text type="label" weight="semibold">
               {displayName}
-            </h3>
+            </Text>
             {showRecommended && model.is_recommended && (
-              <Badge variant="primary">{t("onboarding.recommended")}</Badge>
+              <Badge variant="info" label={t("onboarding.recommended")} />
             )}
             {status === "active" && (
-              <Badge variant="primary">
-                <Check className="w-3 h-3 mr-1" />
-                {t("modelSelector.active")}
-              </Badge>
+              <Badge
+                variant="info"
+                label={t("modelSelector.active")}
+                icon={<Check width={12} height={12} />}
+              />
             )}
             {model.is_custom && (
-              <Badge variant="secondary">{t("modelSelector.custom")}</Badge>
+              <Badge variant="neutral" label={t("modelSelector.custom")} />
             )}
             {status === "switching" && (
-              <Badge variant="secondary">
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                {t("modelSelector.switching")}
-              </Badge>
+              <Badge
+                variant="neutral"
+                label={t("modelSelector.switching")}
+                icon={
+                  <Loader2 width={12} height={12} className="animate-spin" />
+                }
+              />
             )}
-          </div>
-          <p className="text-text/60 text-sm leading-relaxed">
+          </HStack>
+          <Text size="sm" color="secondary">
             {displayDescription}
-          </p>
-        </div>
+          </Text>
+        </VStack>
         {(model.accuracy_score > 0 || model.speed_score > 0) && (
-          <div className="hidden sm:flex items-center ms-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-text/60 w-24 text-end">
-                  {t("onboarding.modelCard.accuracy")}
-                </p>
-                <div className="w-16 h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-logo-primary rounded-full"
-                    style={{ width: `${model.accuracy_score * 100}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-text/60 w-24 text-end">
-                  {t("onboarding.modelCard.speed")}
-                </p>
-                <div className="w-16 h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-logo-primary rounded-full"
-                    style={{ width: `${model.speed_score * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <VStack gap={1} className="hidden sm:flex shrink-0 ms-4 w-32">
+            <HStack gap={2} align="center">
+              <Text size="xsm" color="secondary" className="w-16 text-end">
+                {t("onboarding.modelCard.accuracy")}
+              </Text>
+              <ProgressBar
+                value={model.accuracy_score * 100}
+                label={t("onboarding.modelCard.accuracy")}
+                isLabelHidden
+                className="flex-1"
+              />
+            </HStack>
+            <HStack gap={2} align="center">
+              <Text size="xsm" color="secondary" className="w-16 text-end">
+                {t("onboarding.modelCard.speed")}
+              </Text>
+              <ProgressBar
+                value={model.speed_score * 100}
+                label={t("onboarding.modelCard.speed")}
+                isLabelHidden
+                className="flex-1"
+              />
+            </HStack>
+          </VStack>
         )}
-      </div>
+      </HStack>
 
-      <hr className="w-full border-mid-gray/20" />
+      <Divider />
 
-      {/* Bottom row: tags + action buttons (full width) */}
-      <div className="flex items-center gap-3 w-full -mb-0.5 mt-0.5 h-5">
+      {/* Bottom row: tags + action buttons */}
+      <HStack gap={3} align="center" width="100%">
         {model.supported_languages.length > 0 && (
-          <div
-            className="flex items-center gap-1 text-xs text-text/50"
-            title={
+          <Tooltip
+            content={
               model.supported_languages.length === 1
                 ? t("modelSelector.capabilities.singleLanguage")
                 : t("modelSelector.capabilities.languageSelection")
             }
           >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{getLanguageDisplayText(model.supported_languages, t)}</span>
-          </div>
+            <HStack gap={1} align="center">
+              <Globe
+                width={14}
+                height={14}
+                color="var(--color-text-secondary)"
+              />
+              <Text size="xsm" color="secondary">
+                {getLanguageDisplayText(model.supported_languages, t)}
+              </Text>
+            </HStack>
+          </Tooltip>
         )}
         {model.supports_translation && (
-          <div
-            className="flex items-center gap-1 text-xs text-text/50"
-            title={t("modelSelector.capabilities.translation")}
-          >
-            <Languages className="w-3.5 h-3.5" />
-            <span>{t("modelSelector.capabilities.translate")}</span>
-          </div>
+          <Tooltip content={t("modelSelector.capabilities.translation")}>
+            <HStack gap={1} align="center">
+              <Languages
+                width={14}
+                height={14}
+                color="var(--color-text-secondary)"
+              />
+              <Text size="xsm" color="secondary">
+                {t("modelSelector.capabilities.translate")}
+              </Text>
+            </HStack>
+          </Tooltip>
         )}
         {status === "downloadable" && (
-          <span className="flex items-center gap-1.5 ms-auto text-xs text-text/50">
-            <Download className="w-3.5 h-3.5" />
-            <span>{formatModelSize(Number(model.size_mb))}</span>
-          </span>
+          <HStack gap={1.5} align="center" className="ms-auto">
+            <Download
+              width={14}
+              height={14}
+              color="var(--color-text-secondary)"
+            />
+            <Text size="xsm" color="secondary">
+              {formatModelSize(Number(model.size_mb))}
+            </Text>
+          </HStack>
         )}
         {onDelete && (status === "available" || status === "active") && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            title={t("modelSelector.deleteModel", { modelName: displayName })}
-            className="flex items-center gap-1.5 ms-auto text-logo-primary/85 hover:text-logo-primary hover:bg-logo-primary/10"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{t("common.delete")}</span>
-          </Button>
+            label={t("modelSelector.deleteModel", { modelName: displayName })}
+            isIconOnly
+            icon={<Trash2 width={14} height={14} />}
+            className="ms-auto"
+          />
         )}
-      </div>
+      </HStack>
 
       {/* Download/extract progress */}
       {status === "downloading" && downloadProgress !== undefined && (
-        <div className="w-full mt-3">
-          <div className="w-full h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-logo-primary rounded-full transition-all duration-300"
-              style={{ width: `${downloadProgress}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs mt-1">
-            <span className="text-text/50">
+        <VStack gap={1} width="100%">
+          <ProgressBar
+            value={downloadProgress}
+            label={t("modelSelector.downloading", {
+              percentage: Math.round(downloadProgress),
+            })}
+            isLabelHidden
+          />
+          <HStack justify="between" align="center">
+            <Text size="xsm" color="secondary">
               {t("modelSelector.downloading", {
                 percentage: Math.round(downloadProgress),
               })}
-            </span>
-            <div className="flex items-center gap-2">
+            </Text>
+            <HStack gap={2} align="center">
               {downloadSpeed !== undefined && downloadSpeed > 0 && (
-                <span className="tabular-nums text-text/50">
+                <Text size="xsm" color="secondary" className="tabular-nums">
                   {t("modelSelector.downloadSpeed", {
                     speed: downloadSpeed.toFixed(1),
                   })}
-                </span>
+                </Text>
               )}
               {onCancel && (
                 <Button
-                  variant="danger-ghost"
+                  variant="ghost"
                   size="sm"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onCancel(model.id);
                   }}
-                  aria-label={t("modelSelector.cancelDownload")}
-                >
-                  {t("modelSelector.cancel")}
-                </Button>
+                  label={t("modelSelector.cancel")}
+                  tooltip={t("modelSelector.cancelDownload")}
+                />
               )}
-            </div>
-          </div>
-        </div>
+            </HStack>
+          </HStack>
+        </VStack>
       )}
       {status === "verifying" && (
-        <div className="w-full mt-3">
-          <div className="w-full h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-            <div className="h-full bg-logo-primary rounded-full animate-pulse w-full" />
-          </div>
-          <p className="text-xs text-text/50 mt-1">
+        <VStack gap={1} width="100%">
+          <ProgressBar
+            isIndeterminate
+            label={t("modelSelector.verifyingGeneric")}
+            isLabelHidden
+          />
+          <Text size="xsm" color="secondary">
             {t("modelSelector.verifyingGeneric")}
-          </p>
-        </div>
+          </Text>
+        </VStack>
       )}
       {status === "extracting" && (
-        <div className="w-full mt-3">
-          <div className="w-full h-1.5 bg-mid-gray/20 rounded-full overflow-hidden">
-            <div className="h-full bg-logo-primary rounded-full animate-pulse w-full" />
-          </div>
-          <p className="text-xs text-text/50 mt-1">
+        <VStack gap={1} width="100%">
+          <ProgressBar
+            isIndeterminate
+            label={t("modelSelector.extractingGeneric")}
+            isLabelHidden
+          />
+          <Text size="xsm" color="secondary">
             {t("modelSelector.extractingGeneric")}
-          </p>
-        </div>
+          </Text>
+        </VStack>
       )}
-    </div>
+    </VStack>
+  );
+
+  if (isClickable) {
+    return (
+      <ClickableCard
+        label={displayName}
+        onClick={handleClick}
+        isDisabled={disabled}
+        variant={cardVariant}
+        padding={4}
+      >
+        {cardContent}
+      </ClickableCard>
+    );
+  }
+
+  return (
+    <Card variant={cardVariant} padding={4}>
+      {cardContent}
+    </Card>
   );
 };
 

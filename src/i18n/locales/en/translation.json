@@ -525,6 +525,7 @@
     },
     "debug": {
       "title": "Debug",
+      "description": "Diagnostic tools and low-level tuning for troubleshooting.",
       "logDirectory": {
         "title": "Log Directory",
         "description": "Location where log files are stored"
@@ -601,6 +602,7 @@
     },
     "about": {
       "title": "About",
+      "description": "App version, updates, and acknowledgments.",
       "version": {
         "title": "Version",
         "description": "Current version of Goldfish"

@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { SettingsGroup } from "../../ui/SettingsGroup";
+import { SettingsPage } from "../shared/SettingsPage";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
 import { MicrophoneSelector } from "../MicrophoneSelector";
 import { MuteWhileRecording } from "../MuteWhileRecording";
 import { AlwaysOnMicrophone } from "../AlwaysOnMicrophone";
@@ -16,35 +17,26 @@ export const CaptureSettings: React.FC = () => {
   const { audioFeedbackEnabled } = useSettings();
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.capture.title")}
-        </h1>
-        <p className="text-sm text-text/60">
-          {t("settings.capture.description")}
-        </p>
-      </div>
-      <SettingsGroup title={t("settings.capture.microphone.title")}>
-        <MicrophoneSelector descriptionMode="tooltip" grouped={true} />
-        <MuteWhileRecording descriptionMode="tooltip" grouped={true} />
-        <AlwaysOnMicrophone descriptionMode="tooltip" grouped={true} />
-        <ClamshellMicrophoneSelector descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+    <SettingsPage
+      title={t("settings.capture.title")}
+      description={t("settings.capture.description")}
+    >
+      <SettingsFormGroup title={t("settings.capture.microphone.title")}>
+        <MicrophoneSelector />
+        <MuteWhileRecording />
+        <AlwaysOnMicrophone />
+        <ClamshellMicrophoneSelector />
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.capture.audioFeedback.title")}>
-        <AudioFeedback descriptionMode="tooltip" grouped={true} />
+      <SettingsFormGroup title={t("settings.capture.audioFeedback.title")}>
+        <AudioFeedback />
         <SoundPicker
           label={t("settings.debug.soundTheme.label")}
           description={t("settings.debug.soundTheme.description")}
         />
-        <OutputDeviceSelector
-          descriptionMode="tooltip"
-          grouped={true}
-          disabled={!audioFeedbackEnabled}
-        />
+        <OutputDeviceSelector disabled={!audioFeedbackEnabled} />
         <VolumeSlider disabled={!audioFeedbackEnabled} />
-      </SettingsGroup>
-    </div>
+      </SettingsFormGroup>
+    </SettingsPage>
   );
 };

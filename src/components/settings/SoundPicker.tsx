@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useId } from "react";
 import { Button } from "../ui/Button";
 import { Dropdown, DropdownOption } from "../ui/Dropdown";
 import { PlayIcon } from "lucide-react";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field, HStack } from "@astryxdesign/core";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -15,6 +15,7 @@ export const SoundPicker: React.FC<SoundPickerProps> = ({
   label,
   description,
 }) => {
+  const inputID = useId();
   const { getSetting, updateSetting } = useSettings();
   const playTestSound = useSettingsStore((state) => state.playTestSound);
   const customSounds = useSettingsStore((state) => state.customSounds);
@@ -37,13 +38,13 @@ export const SoundPicker: React.FC<SoundPickerProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={label}
+    <Field
+      label={label}
       description={description}
-      grouped
-      layout="horizontal"
+      inputID={inputID}
+      width="100%"
     >
-      <div className="flex items-center gap-2">
+      <HStack gap={2}>
         <Dropdown
           selectedValue={selectedTheme}
           onSelect={(value) =>
@@ -59,7 +60,7 @@ export const SoundPicker: React.FC<SoundPickerProps> = ({
         >
           <PlayIcon className="h-4 w-4" />
         </Button>
-      </div>
-    </SettingContainer>
+      </HStack>
+    </Field>
   );
 };

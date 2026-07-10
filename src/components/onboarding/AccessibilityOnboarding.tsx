@@ -10,8 +10,15 @@ import {
 import { toast } from "sonner";
 import { commands } from "@/bindings";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { Card } from "@astryxdesign/core/Card";
+import { VStack } from "@astryxdesign/core/VStack";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { Heading } from "@astryxdesign/core/Heading";
+import { Button } from "@astryxdesign/core/Button";
+import { Spinner } from "@astryxdesign/core/Spinner";
 import GoldfishTextLogo from "../icons/GoldfishTextLogo";
-import { Keyboard, Mic, Check, Loader2 } from "lucide-react";
+import { Keyboard, Mic, Check } from "lucide-react";
 
 interface AccessibilityOnboardingProps {
   onComplete: () => void;
@@ -285,7 +292,7 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   if (isChecking) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-text/50" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -293,111 +300,127 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
   // All permissions granted - show success briefly
   if (allGranted) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center gap-4">
+      <VStack
+        align="center"
+        justify="center"
+        gap={4}
+        className="h-screen w-screen"
+      >
         <div className="p-4 rounded-full bg-emerald-500/20">
           <Check className="w-12 h-12 text-emerald-400" />
         </div>
-        <p className="text-lg font-medium text-text">
-          {t("onboarding.permissions.allGranted")}
-        </p>
-      </div>
+        <Heading level={2}>{t("onboarding.permissions.allGranted")}</Heading>
+      </VStack>
     );
   }
 
   // Show permissions request screen
   return (
-    <div className="h-screen w-screen flex flex-col p-6 gap-6 items-center justify-center">
-      <div className="flex flex-col items-center gap-2">
-        <GoldfishTextLogo width={200} />
-      </div>
+    <VStack
+      align="center"
+      justify="center"
+      gap={6}
+      className="h-screen w-screen p-6"
+    >
+      <GoldfishTextLogo width={200} />
 
-      <div className="max-w-md w-full flex flex-col items-center gap-4">
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-semibold text-text mb-2">
+      <VStack align="center" gap={4} className="max-w-md w-full">
+        <VStack align="center" gap={1} className="text-center mb-2">
+          <Heading level={2} justify="center">
             {t("onboarding.permissions.title")}
-          </h2>
-          <p className="text-text/70">
+          </Heading>
+          <Text color="secondary">
             {t("onboarding.permissions.description")}
-          </p>
-        </div>
+          </Text>
+        </VStack>
 
         {/* Microphone Permission Card */}
         {showMicrophonePermission && (
-          <div className="w-full p-4 rounded-lg bg-white/5 border border-mid-gray/20">
-            <div className="flex items-center gap-4">
+          <Card variant="default" padding={4} width="100%">
+            <HStack gap={4} align="center">
               <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
                 <Mic className="w-6 h-6 text-logo-primary" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
+              <VStack gap={1} align="start" className="flex-1 min-w-0">
+                <Text weight="medium">
                   {t("onboarding.permissions.microphone.title")}
-                </h3>
-                <p className="text-sm text-text/60 mb-3">
+                </Text>
+                <Text size="sm" color="secondary">
                   {t("onboarding.permissions.microphone.description")}
-                </p>
+                </Text>
                 {permissions.microphone === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                  <HStack gap={2} align="center" className="text-emerald-400">
                     <Check className="w-4 h-4" />
-                    {t("onboarding.permissions.granted")}
-                  </div>
+                    <Text size="sm" color="inherit">
+                      {t("onboarding.permissions.granted")}
+                    </Text>
+                  </HStack>
                 ) : permissions.microphone === "waiting" ? (
-                  <div className="flex items-center gap-2 text-text/50 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t("onboarding.permissions.waiting")}
-                  </div>
+                  <HStack gap={2} align="center">
+                    <Spinner size="sm" />
+                    <Text size="sm" color="secondary">
+                      {t("onboarding.permissions.waiting")}
+                    </Text>
+                  </HStack>
                 ) : (
-                  <button
+                  <Button
+                    label={
+                      isWindows
+                        ? t("accessibility.openSettings")
+                        : t("onboarding.permissions.grant")
+                    }
+                    variant="primary"
+                    size="sm"
                     onClick={handleGrantMicrophone}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
-                  >
-                    {isWindows
-                      ? t("accessibility.openSettings")
-                      : t("onboarding.permissions.grant")}
-                  </button>
+                  />
                 )}
-              </div>
-            </div>
-          </div>
+              </VStack>
+            </HStack>
+          </Card>
         )}
 
         {/* Accessibility Permission Card */}
         {showAccessibilityPermission && (
-          <div className="w-full p-4 rounded-lg bg-white/5 border border-mid-gray/20">
-            <div className="flex items-center gap-4">
+          <Card variant="default" padding={4} width="100%">
+            <HStack gap={4} align="center">
               <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
                 <Keyboard className="w-6 h-6 text-logo-primary" />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text">
+              <VStack gap={1} align="start" className="flex-1 min-w-0">
+                <Text weight="medium">
                   {t("onboarding.permissions.accessibility.title")}
-                </h3>
-                <p className="text-sm text-text/60 mb-3">
+                </Text>
+                <Text size="sm" color="secondary">
                   {t("onboarding.permissions.accessibility.description")}
-                </p>
+                </Text>
                 {permissions.accessibility === "granted" ? (
-                  <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                  <HStack gap={2} align="center" className="text-emerald-400">
                     <Check className="w-4 h-4" />
-                    {t("onboarding.permissions.granted")}
-                  </div>
+                    <Text size="sm" color="inherit">
+                      {t("onboarding.permissions.granted")}
+                    </Text>
+                  </HStack>
                 ) : permissions.accessibility === "waiting" ? (
-                  <div className="flex items-center gap-2 text-text/50 text-sm">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t("onboarding.permissions.waiting")}
-                  </div>
+                  <HStack gap={2} align="center">
+                    <Spinner size="sm" />
+                    <Text size="sm" color="secondary">
+                      {t("onboarding.permissions.waiting")}
+                    </Text>
+                  </HStack>
                 ) : (
-                  <button
+                  <Button
+                    label={t("onboarding.permissions.grant")}
+                    variant="primary"
+                    size="sm"
                     onClick={handleGrantAccessibility}
-                    className="px-4 py-2 rounded-lg bg-logo-primary hover:bg-logo-primary/90 text-white text-sm font-medium transition-colors"
-                  >
-                    {t("onboarding.permissions.grant")}
-                  </button>
+                  />
                 )}
-              </div>
-            </div>
-          </div>
+              </VStack>
+            </HStack>
+          </Card>
         )}
-      </div>
-    </div>
+      </VStack>
+    </VStack>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useId, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   getKeyName,
@@ -6,26 +6,23 @@ import {
   normalizeKey,
 } from "../../lib/utils/keyboard";
 import { ResetButton } from "../ui/ResetButton";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field, HStack } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import { commands } from "@/bindings";
 import { toast } from "sonner";
 
 interface GlobalShortcutInputProps {
-  descriptionMode?: "inline" | "tooltip";
-  grouped?: boolean;
   shortcutId: string;
   disabled?: boolean;
 }
 
 export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
   shortcutId,
   disabled = false,
 }) => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, updateBinding, resetBinding, isUpdating, isLoading } =
     useSettings();
   const [keyPressed, setKeyPressed] = useState<string[]>([]);
@@ -207,48 +204,48 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   // If still loading, show loading state
   if (isLoading) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
         <div className="text-sm text-mid-gray">
           {t("settings.general.shortcut.loading")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
   // If no bindings are loaded, show empty state
   if (Object.keys(bindings).length === 0) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
         <div className="text-sm text-mid-gray">
           {t("settings.general.shortcut.none")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
   const binding = bindings[shortcutId];
   if (!binding) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.notFound")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
         <div className="text-sm text-mid-gray">
           {t("settings.general.shortcut.none")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
@@ -263,15 +260,14 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   );
 
   return (
-    <SettingContainer
-      title={translatedName}
+    <Field
+      label={translatedName}
       description={translatedDescription}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      disabled={disabled}
-      layout="horizontal"
+      inputID={inputID}
+      isDisabled={disabled}
+      width="100%"
     >
-      <div className="flex items-center space-x-1">
+      <HStack gap={1}>
         {editingShortcutId === shortcutId ? (
           <div
             ref={(ref) => setShortcutRef(shortcutId, ref)}
@@ -291,7 +287,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
           onClick={() => resetBinding(shortcutId)}
           disabled={isUpdating(`binding_${shortcutId}`)}
         />
-      </div>
-    </SettingContainer>
+      </HStack>
+    </Field>
   );
 };
