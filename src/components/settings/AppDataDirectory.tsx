@@ -56,7 +56,7 @@ export const AppDataDirectory: React.FC = () => {
         <Skeleton height={36} />
       ) : (
         <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0 px-2 py-2 bg-mid-gray/10 border border-mid-gray/80 rounded-lg text-xs font-mono break-all select-text cursor-text">
+          <div className="flex-1 min-w-0 px-2 py-2 bg-muted border border-border rounded-lg text-xs font-mono break-all select-text cursor-text">
             {appDirPath}
           </div>
           <Button

@@ -2,7 +2,7 @@ import React, { useEffect, useId, useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { listen } from "@tauri-apps/api/event";
 import { formatKeyCombination } from "../../lib/utils/keyboard";
-import { Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
+import { Button, Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
 import ResetIcon from "../icons/ResetIcon";
 
 const toKbdFormat = (binding: string): string =>
@@ -214,7 +214,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.loading")}
         </div>
       </Field>
@@ -230,7 +230,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
       </Field>
@@ -246,7 +246,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
       </Field>
@@ -271,25 +271,29 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
       isDisabled={disabled}
       width="100%"
     >
-      <HStack gap={1}>
-        {isRecording ? (
-          <div
-            ref={shortcutRef}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/30 rounded-md"
-          >
-            {formatCurrentKeys()}
-          </div>
-        ) : (
-          <button
-            className="rounded-md cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
-            onClick={startRecording}
-            aria-label={t("settings.general.shortcut.editAriaLabel", {
-              keys: formatKeyCombination(binding.current_binding, osType),
-            })}
-          >
-            <Kbd keys={toKbdFormat(binding.current_binding)} />
-          </button>
-        )}
+      <HStack gap={2} align="center">
+        <div ref={shortcutRef}>
+          <Kbd
+            keys={
+              isRecording && currentKeys
+                ? toKbdFormat(currentKeys)
+                : toKbdFormat(binding.current_binding)
+            }
+          />
+        </div>
+        <Button
+          label={
+            isRecording
+              ? t("settings.general.shortcut.pressKeys")
+              : t("settings.general.shortcut.changeShortcut")
+          }
+          onClick={() => {
+            if (!isRecording) startRecording();
+          }}
+          variant={isRecording ? "secondary" : "ghost"}
+          size="sm"
+          isDisabled={disabled}
+        />
         <IconButton
           icon={<ResetIcon />}
           label={t("common.reset")}

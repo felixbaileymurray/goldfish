@@ -5,7 +5,7 @@ import {
   formatKeyCombination,
   normalizeKey,
 } from "../../lib/utils/keyboard";
-import { Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
+import { Button, Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
 import ResetIcon from "../icons/ResetIcon";
 
 // Convert stored binding format (e.g. "command+option_left+k") to Kbd keys format
@@ -224,7 +224,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.loading")}
         </div>
       </Field>
@@ -240,7 +240,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
       </Field>
@@ -256,7 +256,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
         inputID={inputID}
         width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
       </Field>
@@ -281,25 +281,29 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
       isDisabled={disabled}
       width="100%"
     >
-      <HStack gap={1}>
-        {editingShortcutId === shortcutId ? (
-          <div
-            ref={(ref) => setShortcutRef(shortcutId, ref)}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/30 rounded-md"
-          >
-            {formatCurrentKeys()}
-          </div>
-        ) : (
-          <button
-            className="rounded-md cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-logo-primary"
-            onClick={() => startRecording(shortcutId)}
-            aria-label={t("settings.general.shortcut.editAriaLabel", {
-              keys: formatKeyCombination(binding.current_binding, osType),
-            })}
-          >
-            <Kbd keys={toKbdFormat(binding.current_binding)} />
-          </button>
-        )}
+      <HStack gap={2} align="center">
+        <div ref={(ref) => setShortcutRef(shortcutId, ref)}>
+          <Kbd
+            keys={
+              editingShortcutId === shortcutId && recordedKeys.length > 0
+                ? toKbdFormat(recordedKeys.join("+"))
+                : toKbdFormat(binding.current_binding)
+            }
+          />
+        </div>
+        <Button
+          label={
+            editingShortcutId === shortcutId
+              ? t("settings.general.shortcut.pressKeys")
+              : t("settings.general.shortcut.changeShortcut")
+          }
+          onClick={() => {
+            if (editingShortcutId !== shortcutId) startRecording(shortcutId);
+          }}
+          variant={editingShortcutId === shortcutId ? "secondary" : "ghost"}
+          size="sm"
+          isDisabled={disabled}
+        />
         <IconButton
           icon={<ResetIcon />}
           label={t("common.reset")}

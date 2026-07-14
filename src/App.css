@@ -12,7 +12,14 @@
    `opacity: 0` and exposing the raw checkbox underneath the toggle track. */
 @layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
 
-@import "tailwindcss";
+/* Tailwind v4 split imports (theme + preflight up top, utilities last) — this
+   is Astryx's documented setup, and it's load-bearing: the token bridge below
+   registers its @theme from an imported package file, and that only feeds
+   utility generation when `tailwindcss/utilities.css` is imported AFTER it. A
+   bare `@import "tailwindcss"` pulls utilities in up-front, so the bridge's
+   classes (bg-muted/text-accent/…) never get generated. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
 
 /* Astryx design system on React 19. astryx-base/astryx-theme ordered below
    Tailwind's utilities layer (see the @layer statement above) so Tailwind
@@ -20,6 +27,19 @@
 @import "@astryxdesign/core/reset.css";
 @import "@astryxdesign/core/astryx.css";
 @import "@astryxdesign/theme-neutral/theme.css";
+
+/* Tailwind token bridge — maps Astryx design tokens to Tailwind utility
+   classes (bg-surface, text-primary, text-accent, border, bg-muted, …) so
+   className styling references semantic tokens instead of the legacy goldfish
+   @theme aliases (mid-gray/logo-primary/etc.) defined further below. */
+@import "@astryxdesign/core/tailwind-theme.css";
+
+/* Utilities last among the @import block so every @theme the generator needs —
+   the bridge above plus the goldfish @theme block below (mid-gray/logo-primary)
+   — is registered before Tailwind emits utility classes. Kept here in the
+   import group (not after the rule blocks) so it's valid CSS, not reliant on
+   the bundler hoisting a trailing @import. */
+@import "tailwindcss/utilities.css" layer(utilities);
 
 /* goldfish theme overrides — swaps neutral's token values for goldfish's
    brand palette. Same layer as theme-neutral, declared after its @import,
@@ -30,6 +50,7 @@
     --color-accent-muted: #ea5c1f26;
     --color-on-accent: #ffffff;
     --color-icon-accent: #ea5c1f;
+    --color-text-accent: #ea5c1f;
     --color-background-body: #fcf7ed;
     --color-background-card: #ffffff;
     --color-background-surface: #ffffff;
@@ -47,6 +68,7 @@
     --color-accent-muted: #ea5c1f33;
     --color-on-accent: #ffffff;
     --color-icon-accent: #ea5c1f;
+    --color-text-accent: #ea5c1f;
     --color-background-body: #1a1918;
     --color-background-card: #2c2b29;
     --color-background-surface: #2c2b29;

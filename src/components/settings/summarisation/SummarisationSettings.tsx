@@ -68,7 +68,7 @@ const SummarisationModelComponent: React.FC = () => {
         inputID={providerFieldID}
         width="100%"
       >
-        <p className="text-sm text-text/70">{provider?.label ?? providerId}</p>
+        <p className="text-sm text-secondary">{provider?.label ?? providerId}</p>
       </Field>
 
       {!isAppleProvider && (
@@ -268,7 +268,7 @@ const SummarisationPromptsComponent: React.FC = () => {
                   "settings.summarisation.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-xs text-secondary">
                 <Trans
                   i18nKey="settings.summarisation.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -314,7 +314,7 @@ const SummarisationPromptsComponent: React.FC = () => {
                   "settings.summarisation.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-xs text-secondary">
                 <Trans
                   i18nKey="settings.summarisation.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -351,7 +351,7 @@ export const SummarisationSettings: React.FC = () => {
         <h1 className="text-xl font-semibold mb-2">
           {t("settings.summarisation.title")}
         </h1>
-        <p className="text-sm text-text/60">
+        <p className="text-sm text-secondary">
           {t("settings.summarisation.description")}
         </p>
       </div>

@@ -338,8 +338,8 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
         {showMicrophonePermission && (
           <Card variant="default" padding={4} width="100%">
             <HStack gap={4} align="center">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Mic className="w-6 h-6 text-logo-primary" />
+              <div className="p-3 rounded-full bg-accent-muted shrink-0">
+                <Mic className="w-6 h-6 text-accent" />
               </div>
               <VStack gap={1} align="start" className="flex-1 min-w-0">
                 <Text weight="medium">
@@ -383,8 +383,8 @@ const AccessibilityOnboarding: React.FC<AccessibilityOnboardingProps> = ({
         {showAccessibilityPermission && (
           <Card variant="default" padding={4} width="100%">
             <HStack gap={4} align="center">
-              <div className="p-3 rounded-full bg-logo-primary/20 shrink-0">
-                <Keyboard className="w-6 h-6 text-logo-primary" />
+              <div className="p-3 rounded-full bg-accent-muted shrink-0">
+                <Keyboard className="w-6 h-6 text-accent" />
               </div>
               <VStack gap={1} align="start" className="flex-1 min-w-0">
                 <Text weight="medium">

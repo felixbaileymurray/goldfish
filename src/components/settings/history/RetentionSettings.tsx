@@ -13,7 +13,7 @@ export const RetentionSettings: React.FC = () => {
         <h1 className="text-xl font-semibold mb-2">
           {t("settings.retention.title")}
         </h1>
-        <p className="text-sm text-text/60">
+        <p className="text-sm text-secondary">
           {t("settings.retention.description")}
         </p>
       </div>
