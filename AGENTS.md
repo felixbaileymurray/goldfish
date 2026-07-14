@@ -2,6 +2,11 @@
 
 This file provides guidance to AI coding assistants working with code in this repository.
 
+> **Read [CLAUDE.md](CLAUDE.md) first.** This is **Goldfish**, a product built on Handy's engine —
+> not Handy itself. The fork relationship is **pull-only (Handy → Goldfish)**: never open PRs or
+> issues against `cjpais/Handy`, never keep code upstream-compatible, and never apply Handy's
+> contribution etiquette. All work stays in `felixbaileymurray/goldfish`.
+
 ## Development Commands
 
 **Prerequisites:**
@@ -53,7 +58,7 @@ For detailed platform-specific build setup, see [BUILD.md](BUILD.md).
 
 ## Architecture Overview
 
-Handy is a cross-platform desktop speech-to-text application built with Tauri 2.x (Rust backend + React/TypeScript frontend).
+Goldfish is a cross-platform desktop speech-to-text application built with Tauri 2.x (Rust backend + React/TypeScript frontend). It reuses Handy's engine (audio capture, VAD, `transcribe-rs`, model downloads, paste pipeline) and adds its own capture pipeline (Dictate/Keep modes, an always-on Clean stage), persistence model, summarisation, and Astryx-based UI on top. The architecture below is the shared foundation; see [docs/fork-strategy.md](docs/fork-strategy.md) for which layers are Goldfish's own versus pulled from upstream.
 
 ### Backend Structure (src-tauri/src/)
 
@@ -160,15 +165,27 @@ For translation contribution guidelines, see [CONTRIBUTING_TRANSLATIONS.md](CONT
 **Rust:**
 
 - Run `cargo fmt` and `cargo clippy` before committing
-- Handle errors explicitly (avoid unwrap in production)
-- Use descriptive names, add doc comments for public APIs
+- Handle errors explicitly (avoid unwrap in production); use `anyhow::Error` with descriptive
+  context messages and the `?` operator
+- Prefer `Arc<Mutex<T>>` for shared state in managers; builder pattern for initialization chains
+- Log with appropriate levels (`debug!`, `info!`, `eprintln!` for errors)
+- Snake_case for functions/variables, PascalCase for types; add doc comments for public APIs
+- Separate logical sections with comment blocks: `/* ─────────── */`
 
 **TypeScript/React:**
 
-- Strict TypeScript, avoid `any` types
-- Functional components with hooks
-- Tailwind CSS for styling
+- Strict TypeScript, avoid `any` types; use `type` imports (`import type { Settings }`)
+- Functional components with hooks; `useCallback` for stable function references
+- Zod schemas for runtime validation and type inference
+- Destructure props with defaults (`disabled = false`); prefer interface aliases for object shapes
+- Named imports over default exports; group imports external → internal → relative
+- Tailwind CSS for styling; Astryx components for UI (see CLAUDE.md)
 - Path aliases: `@/` → `./src/`
+
+**Error handling:**
+
+- Frontend: try/catch with user feedback; roll back optimistic updates on failure
+- Backend: `?` with `anyhow` context; log at the appropriate debug level
 
 ## CLI Parameters
 
@@ -207,12 +224,16 @@ See the [Troubleshooting](README.md#troubleshooting) section in README.md.
 
 ## GitHub workflow for AI coding assistants
 
-**MANDATORY. Before opening any PR, issue, or discussion in this repo: you MUST read the relevant template file and follow it strictly.** That includes sections that look "ceremonial" — checklists, AI Assistance disclosures, "Human Written Description". A generic Summary/Test-plan layout is not acceptable.
+This is Felix's personal fork (`felixbaileymurray/goldfish`); `main` here is deployable and PRs merge into it, not into upstream `cjpais/Handy`. Always target `felixbaileymurray/goldfish` explicitly (`gh pr create --repo felixbaileymurray/goldfish ...`) — `gh` defaults to the upstream parent on a fork.
 
-- **Opening a PR:** Read [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md). Every section listed there is mandatory. If a section requires a human-written paragraph (e.g. "Human Written Description"), leave a clear TODO placeholder and ask the human contributor to fill it in — do not invent their voice.
-- **Opening an issue:** Read [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). Blank issues are disabled; pick the right template (`bug_report.md` for bugs). Feature requests do not belong in issues — they go to [Discussions](https://github.com/cjpais/Handy/discussions) (see `.github/ISSUE_TEMPLATE/config.yml`).
-- **Proposing a feature:** Handy is under a feature freeze. New features require community support gathered in [Discussions](https://github.com/cjpais/Handy/discussions) before any PR is opened — see the PR template's "Community Feedback" section.
-- **Translations:** Follow [CONTRIBUTING_TRANSLATIONS.md](CONTRIBUTING_TRANSLATIONS.md).
-- **Full contributor workflow:** [CONTRIBUTING.md](CONTRIBUTING.md).
+**MANDATORY. Before opening any PR in this repo: you MUST read and follow [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) exactly.** It has five sections: Description, What changed, Tickets, Testing, AI-assisted development approach.
+
+- **Description is human-written.** Ask Felix for this paragraph before opening or merging the PR — never invent it.
+- **What changed** is a bullet list, bold lead-in per bullet.
+- **Tickets** lists the Notion Feature Backlog ticket title(s) this PR closes.
+- **Testing** lists commands run and what was manually verified.
+- **AI-assisted development approach** is a fixed boilerplate paragraph (already in the template) — reuse it verbatim unless the actual dev approach differs.
+
+The upstream Handy conventions this fork inherited (feature-freeze ceremony, community-feedback links, issue templates gated on `cjpais/Handy` Discussions) do not apply here — this is a solo fork, not a contribution to the upstream project.
 
 **Commits:** Use conventional commit prefixes (`feat:`, `fix:`, `docs:`, `refactor:`, `chore:`). Focus the message on _why_, not _what_.

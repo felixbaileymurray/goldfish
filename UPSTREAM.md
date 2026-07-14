@@ -20,17 +20,18 @@ git remote add upstream https://github.com/cjpais/Handy.git
 git fetch upstream
 ```
 
+## Direction: pull-only
+
+The link to upstream is **one-way (Handy → Goldfish)**. Goldfish pulls engine and stability fixes
+from `cjpais/Handy` and contributes nothing back — never open PRs or issues against upstream.
+
 ## Branch model
 
-Single `main` for now. Goldfish-only work lives under `src-tauri/src/goldfish/`
-and `src/goldfish/` (to be scaffolded) so it can be identified by path rather
-than by branch. Switch to a two-branch model (`upstream-sync` + `goldfish`) when
-either of these becomes true:
-
-- An upstream merge breaks something and we need to ship a Goldfish-only fix
-  without pulling in whatever else upstream changed.
-- We want to contribute engine fixes back upstream and need a clean branch to
-  cherry-pick from.
+Single `main` for now. What's Goldfish's vs. upstream's is distinguished by **layer** (engine vs.
+product), not by directory or branch — see [docs/fork-strategy.md](docs/fork-strategy.md). Switch to
+a two-branch model (`upstream-sync` + `goldfish`) only if an upstream merge breaks something and we
+need to ship a Goldfish-only fix without pulling in whatever else upstream changed. (Contributing
+fixes back upstream is *not* a trigger — the fork is pull-only.)
 
 ## Merge workflow (single-main)
 

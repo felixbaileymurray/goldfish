@@ -347,3 +347,65 @@ Record significant product and technical choices here so future-you (and agents)
 **Tracked in:** Notion "Import audio files".
 
 ---
+
+## 2026-07-11 — Fork isolation is by layer, not by directory (supersedes the `goldfish/`-directory model)
+
+**Status:** decided (supersedes the directory-based framing in the [2026-05-16 "Product fork, not rebrand"](#2026-05-16--product-fork-not-rebrand) decision, the [scaffold.md](./scaffold.md) spec, and the "Goldfish-only code identified by path" claim in [fork-strategy.md](./fork-strategy.md) and [UPSTREAM.md](../UPSTREAM.md))
+
+**Context:** The original low-conflict strategy for staying merge-able with upstream Handy was **isolation by directory**: put all Goldfish-only code under `src-tauri/src/goldfish/` and `src/goldfish/`, keep upstream-owned files touched only by a few marked hook-lines, and let path — not branch — mark "what's ours." The scaffold was actually executed (the `goldfish_ping` command + a no-op `register_state`).
+
+A docs audit surfaced that the model was never followed past that scaffold, and a review of the divergence explained why. The `goldfish/` dirs still contain only ~30 lines of smoke-test wiring; every real differentiator landed in upstream-owned files: summarisation (`summarize.rs`, repo root), medallion persistence (`managers/history.rs`, +338), Dictate/Keep modes (`shortcut/mod.rs`, +155), Goldfish settings (`settings.rs`, +148), the Clean stage (`audio_toolkit/text.rs`, rewritten), audio import (`audio_toolkit/audio/import.rs`), and a wholesale Astryx UI rebuild that *deleted* Handy's `ui/` primitives.
+
+**Why directory isolation could not hold:** it assumed Goldfish = Handy's engine **plus an additive product layer** hanging off clean seams (its own examples: "new command," "new route"). But Goldfish's actual differentiators are **modifications to the engine's own decision points**, not sidecars:
+
+- The dual-pipeline is the core loop *reparameterised* — one `process_transcription_output()` branched by `CaptureMode` (per [2026-06-28](#2026-06-28--dual-pipeline-refined-dictate--keep-always-on-cleanup-medallion-persistence)), deliberately **not** a parallel pipeline. A shared spine cannot be isolated into a sidecar.
+- Medallion persistence is schema/behaviour surgery on Handy's own history manager — engine-level, no seam.
+- The Clean stage *redefines* what post-processing means, replacing a Handy concept rather than adding beside it.
+- Astryx replaces the UI host, deleting Handy primitives — the opposite of mounting a `<GoldfishMount/>`.
+
+All four land in files fork-strategy.md itself labelled "gray zone / conflicts likely." The divergence simply went **deeper than the gray zone budgeted for**, and given the product actually chosen, in-place was inevitable. (The exceptions — `summarize.rs`, `import.rs` — were genuinely additive and *could* have lived in `goldfish/`; they didn't, which is drift once the in-place habit set in, not necessity.)
+
+**Decision:** Recognise the emergent, better-fitting model: **isolation by layer, not by directory.**
+
+- **Engine layer** (`audio_toolkit/audio/**` capture + VAD + resampling, `managers/transcription.rs`, model download, `transcribe-rs` glue): stays close to upstream, merges cleanly, still worth pulling Handy fixes into. This layer verifiably stayed clean (single-digit line deltas).
+- **Product layer** (pipeline semantics, persistence, settings, UI): **owned outright by Goldfish, no longer merged from upstream at all.** Conflicts here are irrelevant because upstream's versions of these files are never merged in.
+
+This matches the recorded fork stance: pull engine/stability fixes from upstream; UI is inspiration-only (rebuilt in Astryx); the pipeline is Goldfish's own.
+
+**Consequences:** The real goal — clean upstream merges — is still met, by a narrower merge surface (the engine layer) rather than by directory quarantine. `fork-strategy.md` and `scaffold.md` describe a superseded plan and need rewriting from "isolate by directory" to "isolate by layer," with merge hot-spots relabelled. The `goldfish/` dirs are now vestigial — a separate call to make: keep as a documented seam for genuinely-additive future modules (summarisation-style), or delete as dead scaffolding. The `mod goldfish;` + `goldfish_ping` hook-lines in `lib.rs` are harmless either way.
+
+**Alternatives considered:** Retrofit existing divergence back into `goldfish/` dirs (rejected: pipeline/persistence/UI changes are modifications to shared code, not extractable modules — the move would be cosmetic and would fight the "one pipeline in code" decision); keep claiming the directory model in docs and treat the gap as tech debt to repay (rejected: the model doesn't fit the product, so "repaying" it is wasted effort — the layer model is the honest description); abandon upstream merging entirely (rejected: the engine layer genuinely still benefits from Handy's audio/VAD/stability fixes).
+
+---
+
+## 2026-07-11 — The Handy relationship is one-way (pull-only)
+
+**Status:** decided
+
+**Context:** Goldfish was created by *forking* `cjpais/Handy`, but the fork was chosen for
+convenience of pulling upstream changes — a clone would have served the same product goal. Much of
+the inherited documentation (Handy's `CONTRIBUTING.md`, the "Upstream governance" notes, fork-strategy
+triggers about cherry-picking back, PR-template ceremony) assumed a *bidirectional* relationship
+where Goldfish might contribute features or fixes back to Handy. It never will.
+
+**Decision:** The relationship is **one-way: Handy → Goldfish only.** Goldfish pulls engine and
+stability fixes *from* upstream and contributes **nothing** back. `cjpais/Handy` is a read-only
+source, never a target. Concretely, when working in this repo: never open PRs or issues against
+`cjpais/Handy`; never keep a change "upstream-compatible" or treat "will this merge back" as a
+constraint; never apply Handy's contribution etiquette (feature freeze, community-feedback-before-PR,
+their issue/PR templates). All PRs, issues, and reviews live in `felixbaileymurray/goldfish`.
+
+**Consequences:** Documentation that framed contributing back is removed or void: Handy's
+`CONTRIBUTING.md` was deleted (no unique dev-setup value; retrievable from upstream if ever needed);
+the "contribute fixes back upstream" two-branch trigger in `fork-strategy.md`/`UPSTREAM.md` is
+struck; the "Upstream governance" section in `codebase-overview.md` is replaced with a pull-only
+note. `CLAUDE.md` and `AGENTS.md` state the rule prominently so a cold-starting agent absorbs it
+first. This composes with the layer-based isolation decision above: engine layer pulled from
+upstream, product layer owned outright, and nothing routed back.
+
+**Alternatives considered:** Keep the contribute-back material as harmless boilerplate (rejected:
+it actively misdirects agents into Handy's process and away from Goldfish's own workflow); re-clone
+to sever the fork relationship entirely (rejected: the fork is exactly what makes pulling upstream
+fixes easy — keep it, just constrain the direction).
+
+---

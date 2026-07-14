@@ -120,7 +120,13 @@ Output ONLY the formatted entries or NOTHING_TO_LOG — no preamble, no commenta
 
 SUGGESTIONS=$(claude -p "$PROMPT" 2>/dev/null || true)
 
-if [[ -n "$SUGGESTIONS" && "$SUGGESTIONS" != "NOTHING_TO_LOG" ]]; then
+# Guard: the nested `claude -p` call can fail (e.g. auth errors when run inside a
+# hook), printing its error to stdout. Never append anything that isn't a real
+# decision entry — a valid suggestion always starts with a `## ` heading.
+if [[ -n "$SUGGESTIONS" ]] \
+    && [[ "$SUGGESTIONS" != "NOTHING_TO_LOG" ]] \
+    && ! grep -qiE 'API Error|Failed to authenticate|Invalid authentication|Credit balance|rate limit' <<< "$SUGGESTIONS" \
+    && grep -q '^## ' <<< "$SUGGESTIONS"; then
     {
         printf '\n<!-- Session %s — %s — review, edit, then move entries to decisions.md -->\n\n' \
             "${SESSION_ID:0:8}" "$(date '+%Y-%m-%d %H:%M')"

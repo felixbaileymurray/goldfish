@@ -2,16 +2,17 @@
 
 Personal documentation for the Goldfish project — a new application built on the technical foundation of [Handy](https://github.com/cjpais/Handy).
 
-This folder is for **your** tracking: architecture notes, fork strategy, and decisions as the project evolves. It is separate from upstream Handy docs (`README.md`, `AGENTS.md`, `BUILD.md` at the repo root).
+This folder is for **your** tracking: architecture notes, fork strategy, and decisions as the project evolves. It complements the root-level docs — [`CLAUDE.md`](../CLAUDE.md) (agent orientation + the pull-only fork rule), [`AGENTS.md`](../AGENTS.md) (build/architecture/style), and [`BUILD.md`](../BUILD.md) (platform build setup).
 
 ## Contents
 
-| Document                                       | Purpose                                                                     |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
-| [codebase-overview.md](./codebase-overview.md) | What is in the repo today: stack, layout, runtime flow                      |
-| [fork-strategy.md](./fork-strategy.md)         | How to treat Handy as an engine, extend Goldfish, stay synced with upstream |
-| [scaffold.md](./scaffold.md)                   | Concrete spec for the initial `goldfish/` scaffold and `lib.rs` edits       |
-| [decisions.md](./decisions.md)                 | Log of product and technical decisions (update as you go)                   |
+| Document                                       | Purpose                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [codebase-overview.md](./codebase-overview.md) | What is in the repo today: stack, layout, runtime flow                                     |
+| [fork-strategy.md](./fork-strategy.md)         | How to treat Handy as an engine, extend Goldfish, stay synced with upstream                |
+| [scaffold.md](./scaffold.md)                   | Concrete spec for the initial `goldfish/` scaffold and `lib.rs` edits                      |
+| [decisions.md](./decisions.md)                 | Log of product and technical decisions (update as you go)                                  |
+| [workflow.md](./workflow.md)                   | Ticket lifecycle: New → Ready → In progress → Testing → Done, and how branching/PRs fit in |
 
 The merge workflow and merge log live at the repo root in [UPSTREAM.md](../UPSTREAM.md).
 
