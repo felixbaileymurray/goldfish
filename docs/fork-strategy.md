@@ -168,7 +168,7 @@ For any *new* seam not covered by that spine, still prefer additive over invasiv
 | ------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | New shortcut action | Goldfish-only command invoked from a binding                                                                        | Copy-paste of `shortcut::handy_keys` |
 | New settings        | Goldfish section behind its own route                                                                               | Edit every Handy settings file       |
-| New UI screen       | New route in `src/goldfish/`, mounted from `App.tsx` via the [composition pattern](#5-frontend-composition-pattern) | Rewrite `App.tsx` wholesale          |
+| New UI screen       | Build directly in Astryx — see [Frontend composition pattern](#5-frontend-composition-pattern-superseded), now superseded | Rewrite `App.tsx` wholesale          |
 
 ### 5. Frontend composition pattern (superseded)
 
