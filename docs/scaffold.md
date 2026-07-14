@@ -1,7 +1,14 @@
 # Goldfish scaffold spec
 
-**Status:** proposed (not yet executed)
-**Last updated:** 2026-05-19
+**Status:** executed, then superseded — retained as history
+**Last updated:** 2026-07-11
+
+> This scaffold *was* executed (the `goldfish_ping` command and no-op `register_state` exist). But
+> the directory-isolation model it serves has since been superseded by layer-based isolation — the
+> real Goldfish work landed in place, not in `goldfish/`. See [fork-strategy.md](./fork-strategy.md)
+> and the 2026-07-11 entry in [decisions.md](./decisions.md). This spec is kept only to document
+> what the vestigial `goldfish/` seam is and how it was wired; it is not the model to follow for new
+> work.
 
 This file specifies the minimum Goldfish scaffold: file tree, file contents, and the exact edits to upstream-owned files. Reviewed and merged BEFORE any code changes land, so we can spot problems while they're cheap.
 
