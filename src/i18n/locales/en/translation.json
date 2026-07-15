@@ -219,6 +219,9 @@
     "output": {
       "title": "Output",
       "description": "Configure how transcribed text is pasted into your active application.",
+      "pasting": {
+        "title": "Paste"
+      },
       "quality": {
         "title": "Quality"
       }

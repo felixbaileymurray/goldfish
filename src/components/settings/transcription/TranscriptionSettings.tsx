@@ -12,10 +12,10 @@ import {
   Center,
   Collapsible,
   EmptyState,
+  Heading,
   HStack,
   Selector,
   Spinner,
-  Text,
   VStack,
 } from "@astryxdesign/core";
 
@@ -152,9 +152,7 @@ export const TranscriptionSettings: React.FC = () => {
         <VStack gap={6}>
           <VStack gap={3}>
             <HStack justify="between" align="center">
-              <Text type="label" color="secondary">
-                {t("settings.models.yourModels")}
-              </Text>
+              <Heading level={3}>{t("settings.models.yourModels")}</Heading>
               <Selector
                 label={t("settings.general.language.title")}
                 isLabelHidden
@@ -188,11 +186,11 @@ export const TranscriptionSettings: React.FC = () => {
             <Collapsible
               defaultIsOpen={false}
               trigger={
-                <Text type="label" color="secondary">
+                <Heading level={3}>
                   {t("settings.models.availableModelsCount", {
                     count: availableModels.length,
                   })}
-                </Text>
+                </Heading>
               }
             >
               <VStack gap={3}>

@@ -17,7 +17,7 @@ export const OutputSettings: React.FC = () => {
       title={t("settings.output.title")}
       description={t("settings.output.description")}
     >
-      <SettingsFormGroup>
+      <SettingsFormGroup title={t("settings.output.pasting.title")}>
         <PasteMethodSetting />
         <TypingToolSetting />
         <ClipboardHandlingSetting />

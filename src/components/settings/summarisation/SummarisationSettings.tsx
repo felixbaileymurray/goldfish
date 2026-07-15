@@ -17,6 +17,7 @@ import type { ModelOption } from "../PostProcessingSettingsApi/types";
 import { useSettings } from "../../../hooks/useSettings";
 import { SummarisationToggle } from "../SummarisationToggle";
 import { SettingsFormGroup } from "../shared/SettingsFormGroup";
+import { SettingsPage } from "../shared/SettingsPage";
 
 const APPLE_PROVIDER_ID = "apple_intelligence";
 
@@ -346,15 +347,10 @@ export const SummarisationSettings: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.summarisation.title")}
-        </h1>
-        <p className="text-sm text-secondary">
-          {t("settings.summarisation.description")}
-        </p>
-      </div>
+    <SettingsPage
+      title={t("settings.summarisation.title")}
+      description={t("settings.summarisation.description")}
+    >
       <SummarisationToggle />
 
       <SettingsFormGroup title={t("settings.summarisation.api.title")}>
@@ -364,6 +360,6 @@ export const SummarisationSettings: React.FC = () => {
       <SettingsFormGroup title={t("settings.summarisation.prompts.title")}>
         <SummarisationPromptsComponent />
       </SettingsFormGroup>
-    </div>
+    </SettingsPage>
   );
 };

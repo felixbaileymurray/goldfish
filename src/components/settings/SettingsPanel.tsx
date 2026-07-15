@@ -66,13 +66,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ onBack }) => {
               onClick={onBack}
               variant="ghost"
             />
-            <Heading level={4}>{t("sidebar.settings")}</Heading>
+            <Heading level={1}>{t("sidebar.settings")}</Heading>
           </HStack>
         </LayoutHeader>
       }
       start={
-        <LayoutPanel hasDivider width={160}>
-          <SideNav>
+        <LayoutPanel hasDivider width={192}>
+          <SideNav style={{ width: "100%" }}>
             {SETTINGS_GROUP_ORDER.map((group) => {
               const sections = sectionsByGroup[group];
               if (sections.length === 0) return null;
