@@ -14,6 +14,7 @@ import {
   EmptyState,
   Heading,
   HStack,
+  Section,
   Selector,
   Spinner,
   VStack,
@@ -150,66 +151,70 @@ export const TranscriptionSettings: React.FC = () => {
     >
       {filteredModels.length > 0 ? (
         <VStack gap={6}>
-          <VStack gap={3}>
-            <HStack justify="between" align="center">
-              <Heading level={3}>{t("settings.models.yourModels")}</Heading>
-              <Selector
-                label={t("settings.general.language.title")}
-                isLabelHidden
-                options={languageFilterOptions}
-                value={languageFilter}
-                onChange={(value) => value && setLanguageFilter(value)}
-                hasSearch
-                searchPlaceholder={t(
-                  "settings.general.language.searchPlaceholder",
-                )}
-                size="sm"
-                width={220}
-              />
-            </HStack>
-            {downloadedModels.map((model: ModelInfo) => (
-              <ModelCard
-                key={model.id}
-                model={model}
-                status={getModelStatus(model.id)}
-                onSelect={handleModelSelect}
-                onDownload={downloadModel}
-                onDelete={handleModelDelete}
-                onCancel={handleModelCancel}
-                downloadProgress={getDownloadProgress(model.id)}
-                downloadSpeed={getDownloadSpeed(model.id)}
-                showRecommended={false}
-              />
-            ))}
-          </VStack>
+          <Section variant="transparent" padding={4}>
+            <VStack gap={3}>
+              <HStack justify="between" align="center">
+                <Heading level={3}>{t("settings.models.yourModels")}</Heading>
+                <Selector
+                  label={t("settings.general.language.title")}
+                  isLabelHidden
+                  options={languageFilterOptions}
+                  value={languageFilter}
+                  onChange={(value) => value && setLanguageFilter(value)}
+                  hasSearch
+                  searchPlaceholder={t(
+                    "settings.general.language.searchPlaceholder",
+                  )}
+                  size="sm"
+                  width={220}
+                />
+              </HStack>
+              {downloadedModels.map((model: ModelInfo) => (
+                <ModelCard
+                  key={model.id}
+                  model={model}
+                  status={getModelStatus(model.id)}
+                  onSelect={handleModelSelect}
+                  onDownload={downloadModel}
+                  onDelete={handleModelDelete}
+                  onCancel={handleModelCancel}
+                  downloadProgress={getDownloadProgress(model.id)}
+                  downloadSpeed={getDownloadSpeed(model.id)}
+                  showRecommended={false}
+                />
+              ))}
+            </VStack>
+          </Section>
           {availableModels.length > 0 && (
-            <Collapsible
-              defaultIsOpen={false}
-              trigger={
-                <Heading level={3}>
-                  {t("settings.models.availableModelsCount", {
-                    count: availableModels.length,
-                  })}
-                </Heading>
-              }
-            >
-              <VStack gap={3}>
-                {availableModels.map((model: ModelInfo) => (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    status={getModelStatus(model.id)}
-                    onSelect={handleModelSelect}
-                    onDownload={downloadModel}
-                    onDelete={handleModelDelete}
-                    onCancel={handleModelCancel}
-                    downloadProgress={getDownloadProgress(model.id)}
-                    downloadSpeed={getDownloadSpeed(model.id)}
-                    showRecommended={false}
-                  />
-                ))}
-              </VStack>
-            </Collapsible>
+            <Section variant="transparent" padding={4}>
+              <Collapsible
+                defaultIsOpen={false}
+                trigger={
+                  <Heading level={3}>
+                    {t("settings.models.availableModelsCount", {
+                      count: availableModels.length,
+                    })}
+                  </Heading>
+                }
+              >
+                <VStack gap={3}>
+                  {availableModels.map((model: ModelInfo) => (
+                    <ModelCard
+                      key={model.id}
+                      model={model}
+                      status={getModelStatus(model.id)}
+                      onSelect={handleModelSelect}
+                      onDownload={downloadModel}
+                      onDelete={handleModelDelete}
+                      onCancel={handleModelCancel}
+                      downloadProgress={getDownloadProgress(model.id)}
+                      downloadSpeed={getDownloadSpeed(model.id)}
+                      showRecommended={false}
+                    />
+                  ))}
+                </VStack>
+              </Collapsible>
+            </Section>
           )}
         </VStack>
       ) : (
