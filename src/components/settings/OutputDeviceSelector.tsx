@@ -1,83 +1,89 @@
-import React from "react";
+import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Dropdown } from "../ui/Dropdown";
-import { SettingContainer } from "../ui/SettingContainer";
-import { ResetButton } from "../ui/ResetButton";
+import { Field, HStack, IconButton, Selector } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 import type { AudioDevice } from "@/bindings";
 
 interface OutputDeviceSelectorProps {
-  descriptionMode?: "inline" | "tooltip";
-  grouped?: boolean;
   disabled?: boolean;
 }
 
 export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
-  React.memo(
-    ({ descriptionMode = "tooltip", grouped = false, disabled = false }) => {
-      const { t } = useTranslation();
-      const {
-        getSetting,
-        updateSetting,
-        resetSetting,
-        isUpdating,
-        isLoading,
-        outputDevices,
-        refreshOutputDevices,
-      } = useSettings();
+  React.memo(({ disabled = false }) => {
+    const { t } = useTranslation();
+    const inputID = useId();
+    const {
+      getSetting,
+      updateSetting,
+      resetSetting,
+      isUpdating,
+      isLoading,
+      outputDevices,
+      refreshOutputDevices,
+    } = useSettings();
 
-      const selectedOutputDevice =
-        getSetting("selected_output_device") === "default"
-          ? "Default"
-          : getSetting("selected_output_device") || "Default";
+    const selectedOutputDevice =
+      getSetting("selected_output_device") === "default"
+        ? "Default"
+        : getSetting("selected_output_device") || "Default";
 
-      const handleOutputDeviceSelect = async (deviceName: string) => {
-        await updateSetting("selected_output_device", deviceName);
-      };
+    const handleOutputDeviceSelect = async (deviceName: string) => {
+      await updateSetting("selected_output_device", deviceName);
+    };
 
-      const handleReset = async () => {
-        await resetSetting("selected_output_device");
-      };
+    const handleReset = async () => {
+      await resetSetting("selected_output_device");
+    };
 
-      const outputDeviceOptions = outputDevices.map((device: AudioDevice) => ({
-        value: device.name,
-        label: device.name,
-      }));
+    // Astryx's Selector has no onOpen/onRefresh hook, so rescan devices on
+    // any click in this control (mirrors the old Dropdown's refresh-on-open).
+    const handleRefreshOnInteract = () => {
+      refreshOutputDevices().catch(console.error);
+    };
 
-      return (
-        <SettingContainer
-          title={t("settings.sound.outputDevice.title")}
-          description={t("settings.sound.outputDevice.description")}
-          descriptionMode={descriptionMode}
-          grouped={grouped}
-          disabled={disabled}
-        >
-          <div className="flex items-center space-x-1">
-            <Dropdown
-              options={outputDeviceOptions}
-              selectedValue={selectedOutputDevice}
-              onSelect={handleOutputDeviceSelect}
-              placeholder={
-                isLoading || outputDevices.length === 0
-                  ? t("settings.sound.outputDevice.loading")
-                  : t("settings.sound.outputDevice.placeholder")
-              }
-              disabled={
-                disabled ||
-                isUpdating("selected_output_device") ||
-                isLoading ||
-                outputDevices.length === 0
-              }
-              onRefresh={refreshOutputDevices}
-            />
-            <ResetButton
-              onClick={handleReset}
-              disabled={
-                disabled || isUpdating("selected_output_device") || isLoading
-              }
-            />
-          </div>
-        </SettingContainer>
-      );
-    },
-  );
+    const outputDeviceOptions = outputDevices.map((device: AudioDevice) => ({
+      value: device.name,
+      label: device.name,
+    }));
+
+    return (
+      <Field
+        label={t("settings.sound.outputDevice.title")}
+        description={t("settings.sound.outputDevice.description")}
+        inputID={inputID}
+        isDisabled={disabled}
+        width="100%"
+      >
+        <HStack gap={1} onClickCapture={handleRefreshOnInteract}>
+          <Selector
+            label={t("settings.sound.outputDevice.title")}
+            isLabelHidden
+            options={outputDeviceOptions}
+            value={selectedOutputDevice}
+            onChange={handleOutputDeviceSelect}
+            placeholder={
+              isLoading || outputDevices.length === 0
+                ? t("settings.sound.outputDevice.loading")
+                : t("settings.sound.outputDevice.placeholder")
+            }
+            isDisabled={
+              disabled ||
+              isUpdating("selected_output_device") ||
+              isLoading ||
+              outputDevices.length === 0
+            }
+          />
+          <IconButton
+            icon={<ResetIcon />}
+            label={t("common.reset")}
+            onClick={handleReset}
+            isDisabled={
+              disabled || isUpdating("selected_output_device") || isLoading
+            }
+            variant="ghost"
+          />
+        </HStack>
+      </Field>
+    );
+  });

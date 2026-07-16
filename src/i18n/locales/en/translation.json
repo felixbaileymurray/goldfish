@@ -219,6 +219,9 @@
     "output": {
       "title": "Output",
       "description": "Configure how transcribed text is pasted into your active application.",
+      "pasting": {
+        "title": "Paste"
+      },
       "quality": {
         "title": "Quality"
       }
@@ -251,7 +254,9 @@
         "loading": "Loading shortcuts...",
         "none": "No shortcuts configured",
         "notFound": "Shortcut not found",
-        "pressKeys": "Press keys...",
+        "pressKeys": "press keys",
+        "changeShortcut": "change shortcut",
+        "editAriaLabel": "Edit shortcut: {{keys}}",
         "bindings": {
           "transcribe": {
             "name": "Dictate",
@@ -525,6 +530,7 @@
     },
     "debug": {
       "title": "Debug",
+      "description": "Diagnostic tools and low-level tuning for troubleshooting.",
       "logDirectory": {
         "title": "Log Directory",
         "description": "Location where log files are stored"
@@ -539,7 +545,8 @@
       },
       "soundTheme": {
         "label": "Sound Theme",
-        "description": "Choose a sound theme for recording start and stop feedback"
+        "description": "Choose a sound theme for recording start and stop feedback",
+        "previewAriaLabel": "Preview sound theme"
       },
       "wordCorrectionThreshold": {
         "title": "Word Correction Threshold",
@@ -601,6 +608,7 @@
     },
     "about": {
       "title": "About",
+      "description": "App version, updates, and acknowledgments.",
       "version": {
         "title": "Version",
         "description": "Current version of Goldfish"

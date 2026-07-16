@@ -184,14 +184,39 @@ work).
 - Inherited Handy CI (`code-quality.yml`) still runs ESLint/Prettier/translations on every PR —
   free gate, already there.
 - PR body is short and honest — the full upstream `PULL_REQUEST_TEMPLATE.md` ceremony
-  (AI-disclosure, Community-Feedback, Human-Written-Description) only applies to contributions
-  going to `cjpais/Handy`, not self-PRs into this fork's own `main`.
-- Every self-PR body includes this verbatim, in its own section:
-  > I use Notion to manage an end-to-end research, design and development pipeline. Development
-  > is typically executed by Claude Sonnet 5, with Opus 4.8 handling planning and architecture
-  > decisions.
-- The human description section is Felix's to write — never fabricate his voice; leave a TODO
-  placeholder if a section calls for one.
+  (issue/PR search checkboxes, Community Feedback, Related Issues/Discussions, Screenshots)
+  only applies to contributions going to `cjpais/Handy`, not self-PRs into this fork's own
+  `main`. Self-PRs use their own fixed heading structure instead — always these five headings,
+  in this order, nothing extra (no "Summary", no "Test plan" checkbox list):
+
+  ```markdown
+  ## Description
+
+  [Why this change, in Felix's own words.]
+
+  ## What changed
+
+  - [Bullet list of concrete changes — technical and factual, not a narrative.]
+
+  ## Tickets
+
+  [Link(s) to the Feature Backlog ticket(s) this PR covers. For work that isn't tracked as a
+  ticket: "N/A — ad hoc infrastructure patch, not tracked as a Feature Backlog ticket."]
+
+  ## Testing
+
+  - [Bullet list of verification actually performed — commands run and their result, manual
+    checks actually done. Not a TODO checklist of things left to verify.]
+
+  ## AI-assisted development approach
+
+  I use Notion to manage an end-to-end research, design and development pipeline. Development
+  is typically executed by Claude Sonnet 5, with Opus 4.8 handling planning and architecture
+  decisions.
+  ```
+- `Description` is Felix's own words, never Claude's. Claude asks Felix for this content
+  when drafting a self-PR — it does not guess at it or leave a placeholder for later; the
+  question is part of opening the PR, same turn.
 - Pushing to origin and opening PRs are outward-facing actions — always confirm before doing
   them, even though the rest of `/ship` can run unattended.
 

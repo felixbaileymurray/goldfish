@@ -2,18 +2,9 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../../hooks/useSettings";
 import { commands, type ModelUnloadTimeout } from "@/bindings";
-import { Dropdown } from "../ui/Dropdown";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Selector } from "@astryxdesign/core";
 
-interface ModelUnloadTimeoutProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const ModelUnloadTimeoutSetting: React.FC<ModelUnloadTimeoutProps> = ({
-  descriptionMode = "inline",
-  grouped = false,
-}) => {
+export const ModelUnloadTimeoutSetting: React.FC = () => {
   const { t } = useTranslation();
   const { settings, getSetting, updateSetting } = useSettings();
 
@@ -74,22 +65,17 @@ export const ModelUnloadTimeoutSetting: React.FC<ModelUnloadTimeoutProps> = ({
   }, [settings]);
 
   return (
-    <SettingContainer
-      title={t("settings.advanced.modelUnload.title")}
+    <Selector
+      label={t("settings.advanced.modelUnload.title")}
       description={t("settings.advanced.modelUnload.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-    >
-      <Dropdown
-        options={options}
-        selectedValue={currentValue}
-        onSelect={(value) =>
-          handleChange({
-            target: { value },
-          } as React.ChangeEvent<HTMLSelectElement>)
-        }
-        disabled={false}
-      />
-    </SettingContainer>
+      options={options}
+      value={currentValue}
+      onChange={(value) =>
+        handleChange({
+          target: { value },
+        } as React.ChangeEvent<HTMLSelectElement>)
+      }
+      width="100%"
+    />
   );
 };

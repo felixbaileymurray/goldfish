@@ -1,8 +1,7 @@
-import React from "react";
-import { Button } from "../ui/Button";
-import { Dropdown, DropdownOption } from "../ui/Dropdown";
+import React, { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { PlayIcon } from "lucide-react";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Field, HStack, IconButton, Selector } from "@astryxdesign/core";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { useSettings } from "../../hooks/useSettings";
 
@@ -15,13 +14,15 @@ export const SoundPicker: React.FC<SoundPickerProps> = ({
   label,
   description,
 }) => {
+  const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, updateSetting } = useSettings();
   const playTestSound = useSettingsStore((state) => state.playTestSound);
   const customSounds = useSettingsStore((state) => state.customSounds);
 
   const selectedTheme = getSetting("sound_theme") ?? "marimba";
 
-  const options: DropdownOption[] = [
+  const options = [
     { value: "marimba", label: "Marimba" },
     { value: "pop", label: "Pop" },
   ];
@@ -37,29 +38,30 @@ export const SoundPicker: React.FC<SoundPickerProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={label}
+    <Field
+      label={label}
       description={description}
-      grouped
-      layout="horizontal"
+      inputID={inputID}
+      width="100%"
     >
-      <div className="flex items-center gap-2">
-        <Dropdown
-          selectedValue={selectedTheme}
-          onSelect={(value) =>
+      <HStack gap={2}>
+        <Selector
+          label={label}
+          isLabelHidden
+          value={selectedTheme}
+          onChange={(value) =>
             updateSetting("sound_theme", value as "marimba" | "pop" | "custom")
           }
           options={options}
         />
-        <Button
+        <IconButton
+          icon={<PlayIcon className="h-4 w-4" />}
+          label={t("settings.advanced.soundTheme.previewAriaLabel")}
           variant="ghost"
           size="sm"
           onClick={handlePlayBothSounds}
-          title="Preview sound theme (plays start then stop)"
-        >
-          <PlayIcon className="h-4 w-4" />
-        </Button>
-      </div>
-    </SettingContainer>
+        />
+      </HStack>
+    </Field>
   );
 };

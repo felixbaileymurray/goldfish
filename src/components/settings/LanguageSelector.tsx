@@ -1,22 +1,19 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useId, useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { SettingContainer } from "../ui/SettingContainer";
-import { ResetButton } from "../ui/ResetButton";
+import { Field, HStack, IconButton } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
 import { useSettings } from "../../hooks/useSettings";
 import { LANGUAGES } from "../../lib/constants/languages";
 
 interface LanguageSelectorProps {
-  descriptionMode?: "inline" | "tooltip";
-  grouped?: boolean;
   supportedLanguages?: string[];
 }
 
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
   supportedLanguages,
 }) => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, updateSetting, resetSetting, isUpdating } = useSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,13 +96,13 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={t("settings.general.language.title")}
+    <Field
+      label={t("settings.general.language.title")}
       description={t("settings.general.language.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
+      inputID={inputID}
+      width="100%"
     >
-      <div className="flex items-center space-x-1">
+      <HStack gap={1}>
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
@@ -177,16 +174,19 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
             </div>
           )}
         </div>
-        <ResetButton
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
           onClick={handleReset}
-          disabled={isUpdating("selected_language")}
+          isDisabled={isUpdating("selected_language")}
+          variant="ghost"
         />
-      </div>
+      </HStack>
       {isUpdating("selected_language") && (
         <div className="absolute inset-0 bg-mid-gray/10 rounded flex items-center justify-center">
           <div className="w-4 h-4 border-2 border-logo-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-    </SettingContainer>
+    </Field>
   );
 };

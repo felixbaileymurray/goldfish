@@ -1,23 +1,29 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ask } from "@tauri-apps/plugin-dialog";
-import { ChevronDown, Globe } from "lucide-react";
 import type { ModelCardStatus } from "@/components/onboarding";
 import { ModelCard } from "@/components/onboarding";
 import { useModelStore } from "@/stores/modelStore";
 import { LANGUAGES } from "@/lib/constants/languages.ts";
 import type { ModelInfo } from "@/bindings";
 import { ModelSettingsCard } from "../general/ModelSettingsCard";
+import { SettingsPage } from "../shared/SettingsPage";
+import {
+  Center,
+  Collapsible,
+  EmptyState,
+  Heading,
+  HStack,
+  Section,
+  Selector,
+  Spinner,
+  VStack,
+} from "@astryxdesign/core";
 
 export const TranscriptionSettings: React.FC = () => {
   const { t } = useTranslation();
   const [switchingModelId, setSwitchingModelId] = useState<string | null>(null);
-  const [availableExpanded, setAvailableExpanded] = useState(false);
   const [languageFilter, setLanguageFilter] = useState("all");
-  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
-  const [languageSearch, setLanguageSearch] = useState("");
-  const languageDropdownRef = useRef<HTMLDivElement>(null);
-  const languageSearchInputRef = useRef<HTMLInputElement>(null);
   const {
     models,
     currentModel,
@@ -33,40 +39,16 @@ export const TranscriptionSettings: React.FC = () => {
     deleteModel,
   } = useModelStore();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        languageDropdownRef.current &&
-        !languageDropdownRef.current.contains(event.target as Node)
-      ) {
-        setLanguageDropdownOpen(false);
-        setLanguageSearch("");
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (languageDropdownOpen && languageSearchInputRef.current) {
-      languageSearchInputRef.current.focus();
-    }
-  }, [languageDropdownOpen]);
-
-  const filteredLanguages = useMemo(() => {
-    return LANGUAGES.filter(
-      (lang) =>
-        lang.value !== "auto" &&
-        lang.label.toLowerCase().includes(languageSearch.toLowerCase()),
-    );
-  }, [languageSearch]);
-
-  const selectedLanguageLabel = useMemo(() => {
-    if (languageFilter === "all") {
-      return t("settings.models.filters.allLanguages");
-    }
-    return LANGUAGES.find((lang) => lang.value === languageFilter)?.label || "";
-  }, [languageFilter, t]);
+  const languageFilterOptions = useMemo(
+    () => [
+      { value: "all", label: t("settings.models.filters.allLanguages") },
+      ...LANGUAGES.filter((lang) => lang.value !== "auto").map((lang) => ({
+        value: lang.value,
+        label: lang.label,
+      })),
+    ],
+    [t],
+  );
 
   const getModelStatus = (modelId: string): ModelCardStatus => {
     if (modelId in extractingModels) return "extracting";
@@ -156,182 +138,91 @@ export const TranscriptionSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-3xl w-full mx-auto">
-        <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-logo-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      </div>
+      <Center axis="both" maxWidth={768} height={200}>
+        <Spinner size="lg" />
+      </Center>
     );
   }
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.transcription.title")}
-        </h1>
-        <p className="text-sm text-text/60">
-          {t("settings.transcription.description")}
-        </p>
-      </div>
-
+    <SettingsPage
+      title={t("settings.transcription.title")}
+      description={t("settings.transcription.description")}
+    >
       {filteredModels.length > 0 ? (
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-text/60">
-                {t("settings.models.yourModels")}
-              </h2>
-              <div className="relative" ref={languageDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    languageFilter !== "all"
-                      ? "bg-logo-primary/20 text-logo-primary"
-                      : "bg-mid-gray/10 text-text/60 hover:bg-mid-gray/20"
-                  }`}
-                >
-                  <Globe className="w-3.5 h-3.5" />
-                  <span className="max-w-[120px] truncate">
-                    {selectedLanguageLabel}
-                  </span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${
-                      languageDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {languageDropdownOpen && (
-                  <div className="absolute top-full right-0 mt-1 w-56 bg-background border border-mid-gray/80 rounded-lg shadow-lg z-50 overflow-hidden">
-                    <div className="p-2 border-b border-mid-gray/40">
-                      <input
-                        ref={languageSearchInputRef}
-                        type="text"
-                        value={languageSearch}
-                        onChange={(e) => setLanguageSearch(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (
-                            e.key === "Enter" &&
-                            filteredLanguages.length > 0
-                          ) {
-                            setLanguageFilter(filteredLanguages[0].value);
-                            setLanguageDropdownOpen(false);
-                            setLanguageSearch("");
-                          } else if (e.key === "Escape") {
-                            setLanguageDropdownOpen(false);
-                            setLanguageSearch("");
-                          }
-                        }}
-                        placeholder={t(
-                          "settings.general.language.searchPlaceholder",
-                        )}
-                        className="w-full px-2 py-1 text-sm bg-mid-gray/10 border border-mid-gray/40 rounded-md focus:outline-none focus:ring-1 focus:ring-logo-primary"
-                      />
-                    </div>
-                    <div className="max-h-48 overflow-y-auto">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLanguageFilter("all");
-                          setLanguageDropdownOpen(false);
-                          setLanguageSearch("");
-                        }}
-                        className={`w-full px-3 py-1.5 text-sm text-left transition-colors ${
-                          languageFilter === "all"
-                            ? "bg-logo-primary/20 text-logo-primary font-semibold"
-                            : "hover:bg-mid-gray/10"
-                        }`}
-                      >
-                        {t("settings.models.filters.allLanguages")}
-                      </button>
-                      {filteredLanguages.map((lang) => (
-                        <button
-                          key={lang.value}
-                          type="button"
-                          onClick={() => {
-                            setLanguageFilter(lang.value);
-                            setLanguageDropdownOpen(false);
-                            setLanguageSearch("");
-                          }}
-                          className={`w-full px-3 py-1.5 text-sm text-left transition-colors ${
-                            languageFilter === lang.value
-                              ? "bg-logo-primary/20 text-logo-primary font-semibold"
-                              : "hover:bg-mid-gray/10"
-                          }`}
-                        >
-                          {lang.label}
-                        </button>
-                      ))}
-                      {filteredLanguages.length === 0 && (
-                        <div className="px-3 py-2 text-sm text-text/50 text-center">
-                          {t("settings.general.language.noResults")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            {downloadedModels.map((model: ModelInfo) => (
-              <ModelCard
-                key={model.id}
-                model={model}
-                status={getModelStatus(model.id)}
-                onSelect={handleModelSelect}
-                onDownload={downloadModel}
-                onDelete={handleModelDelete}
-                onCancel={handleModelCancel}
-                downloadProgress={getDownloadProgress(model.id)}
-                downloadSpeed={getDownloadSpeed(model.id)}
-                showRecommended={false}
-              />
-            ))}
-          </div>
-          {availableModels.length > 0 && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => setAvailableExpanded((prev) => !prev)}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <h2 className="text-sm font-medium text-text/60">
-                  {t("settings.models.availableModelsCount", {
-                    count: availableModels.length,
-                  })}
-                </h2>
-                <ChevronDown
-                  className={`w-4 h-4 text-text/40 transition-transform duration-200 ${
-                    availableExpanded ? "rotate-180" : ""
-                  }`}
+        <VStack gap={6}>
+          <Section variant="transparent" padding={4}>
+            <VStack gap={3}>
+              <HStack justify="between" align="center">
+                <Heading level={3}>{t("settings.models.yourModels")}</Heading>
+                <Selector
+                  label={t("settings.general.language.title")}
+                  isLabelHidden
+                  options={languageFilterOptions}
+                  value={languageFilter}
+                  onChange={(value) => value && setLanguageFilter(value)}
+                  hasSearch
+                  searchPlaceholder={t(
+                    "settings.general.language.searchPlaceholder",
+                  )}
+                  size="sm"
+                  width={220}
                 />
-              </button>
-              {availableExpanded &&
-                availableModels.map((model: ModelInfo) => (
-                  <ModelCard
-                    key={model.id}
-                    model={model}
-                    status={getModelStatus(model.id)}
-                    onSelect={handleModelSelect}
-                    onDownload={downloadModel}
-                    onDelete={handleModelDelete}
-                    onCancel={handleModelCancel}
-                    downloadProgress={getDownloadProgress(model.id)}
-                    downloadSpeed={getDownloadSpeed(model.id)}
-                    showRecommended={false}
-                  />
-                ))}
-            </div>
+              </HStack>
+              {downloadedModels.map((model: ModelInfo) => (
+                <ModelCard
+                  key={model.id}
+                  model={model}
+                  status={getModelStatus(model.id)}
+                  onSelect={handleModelSelect}
+                  onDownload={downloadModel}
+                  onDelete={handleModelDelete}
+                  onCancel={handleModelCancel}
+                  downloadProgress={getDownloadProgress(model.id)}
+                  downloadSpeed={getDownloadSpeed(model.id)}
+                  showRecommended={false}
+                />
+              ))}
+            </VStack>
+          </Section>
+          {availableModels.length > 0 && (
+            <Section variant="transparent" padding={4}>
+              <Collapsible
+                defaultIsOpen={false}
+                trigger={
+                  <Heading level={3}>
+                    {t("settings.models.availableModelsCount", {
+                      count: availableModels.length,
+                    })}
+                  </Heading>
+                }
+              >
+                <VStack gap={3}>
+                  {availableModels.map((model: ModelInfo) => (
+                    <ModelCard
+                      key={model.id}
+                      model={model}
+                      status={getModelStatus(model.id)}
+                      onSelect={handleModelSelect}
+                      onDownload={downloadModel}
+                      onDelete={handleModelDelete}
+                      onCancel={handleModelCancel}
+                      downloadProgress={getDownloadProgress(model.id)}
+                      downloadSpeed={getDownloadSpeed(model.id)}
+                      showRecommended={false}
+                    />
+                  ))}
+                </VStack>
+              </Collapsible>
+            </Section>
           )}
-        </div>
+        </VStack>
       ) : (
-        <div className="text-center py-8 text-text/50">
-          {t("settings.models.noModelsMatch")}
-        </div>
+        <EmptyState title={t("settings.models.noModelsMatch")} />
       )}
 
       {/* STT quality settings */}
       <ModelSettingsCard />
-    </div>
+    </SettingsPage>
   );
 };

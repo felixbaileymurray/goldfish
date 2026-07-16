@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Slider } from "../ui/Slider";
+import { Slider } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 
 export const VolumeSlider: React.FC<{ disabled?: boolean }> = ({
@@ -18,12 +18,13 @@ export const VolumeSlider: React.FC<{ disabled?: boolean }> = ({
       }
       min={0}
       max={1}
+      step={0.01}
       label={t("settings.sound.volume.title")}
       description={t("settings.sound.volume.description")}
-      descriptionMode="tooltip"
-      grouped
       formatValue={(value) => `${Math.round(value * 100)}%`}
-      disabled={disabled}
+      valueDisplay="text"
+      isDisabled={disabled}
+      width="100%"
     />
   );
 };

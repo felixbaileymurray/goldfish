@@ -1,26 +1,30 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
 import { commands } from "@/bindings";
 
 import {
-  Dropdown,
-  SettingContainer,
-  SettingsGroup,
-  Textarea,
-} from "@/components/ui";
-import { Button } from "../../ui/Button";
-import { ResetButton } from "../../ui/ResetButton";
-import { Input } from "../../ui/Input";
+  Button,
+  Field,
+  HStack,
+  IconButton,
+  Selector,
+  TextArea,
+  TextInput,
+} from "@astryxdesign/core";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import type { ModelOption } from "../PostProcessingSettingsApi/types";
 import { useSettings } from "../../../hooks/useSettings";
 import { SummarisationToggle } from "../SummarisationToggle";
+import { SettingsFormGroup } from "../shared/SettingsFormGroup";
+import { SettingsPage } from "../shared/SettingsPage";
 
 const APPLE_PROVIDER_ID = "apple_intelligence";
 
 const SummarisationModelComponent: React.FC = () => {
   const { t } = useTranslation();
+  const providerFieldID = useId();
+  const modelFieldID = useId();
   const {
     settings,
     isUpdating,
@@ -59,30 +63,27 @@ const SummarisationModelComponent: React.FC = () => {
 
   return (
     <>
-      <SettingContainer
-        title={t("settings.summarisation.provider.title")}
-        description={t("settings.summarisation.provider.description")}
-        descriptionMode="tooltip"
-        layout="horizontal"
-        grouped={true}
+      <Field
+        label={t("settings.summarisation.provider.title")}
+        labelTooltip={t("settings.summarisation.provider.description")}
+        inputID={providerFieldID}
+        width="100%"
       >
-        <p className="text-sm text-text/70">{provider?.label ?? providerId}</p>
-      </SettingContainer>
+        <p className="text-sm text-secondary">{provider?.label ?? providerId}</p>
+      </Field>
 
       {!isAppleProvider && (
-        <SettingContainer
-          title={t("settings.summarisation.model.title")}
-          description={t("settings.summarisation.model.description")}
-          descriptionMode="tooltip"
-          layout="stacked"
-          grouped={true}
+        <Field
+          label={t("settings.summarisation.model.title")}
+          labelTooltip={t("settings.summarisation.model.description")}
+          inputID={modelFieldID}
+          width="100%"
         >
-          <div className="flex items-center gap-2">
+          <HStack gap={2}>
             <ModelSelect
               value={model}
               options={modelOptions}
-              disabled={isModelUpdating}
-              isLoading={isFetchingModels}
+              isDisabled={isModelUpdating}
               placeholder={
                 modelOptions.length > 0
                   ? t("settings.summarisation.model.placeholderWithOptions")
@@ -92,21 +93,21 @@ const SummarisationModelComponent: React.FC = () => {
                 updateSummarizeModel(providerId, value.trim())
               }
               onCreate={(value) => updateSummarizeModel(providerId, value)}
-              onBlur={() => {}}
-              className="flex-1 min-w-[380px]"
+              className="flex-1 min-w-95"
             />
-            <ResetButton
+            <IconButton
+              icon={
+                <RefreshCcw
+                  className={`h-4 w-4 ${isFetchingModels ? "animate-spin" : ""}`}
+                />
+              }
+              label={t("settings.summarisation.model.refreshModels")}
               onClick={() => void fetchPostProcessModels(providerId)}
-              disabled={isFetchingModels}
-              ariaLabel={t("settings.summarisation.model.refreshModels")}
-              className="flex h-10 w-10 items-center justify-center"
-            >
-              <RefreshCcw
-                className={`h-4 w-4 ${isFetchingModels ? "animate-spin" : ""}`}
-              />
-            </ResetButton>
-          </div>
-        </SettingContainer>
+              isDisabled={isFetchingModels}
+              variant="ghost"
+            />
+          </HStack>
+        </Field>
       )}
     </>
   );
@@ -114,6 +115,7 @@ const SummarisationModelComponent: React.FC = () => {
 
 const SummarisationPromptsComponent: React.FC = () => {
   const { t } = useTranslation();
+  const promptsFieldID = useId();
   const { getSetting, updateSetting, isUpdating, refreshSettings } =
     useSettings();
   const [isCreating, setIsCreating] = useState(false);
@@ -213,68 +215,61 @@ const SummarisationPromptsComponent: React.FC = () => {
       draftText.trim() !== selectedPrompt.prompt.trim());
 
   return (
-    <SettingContainer
-      title={t("settings.summarisation.prompts.selectedPrompt.title")}
-      description={t(
+    <Field
+      label={t("settings.summarisation.prompts.selectedPrompt.title")}
+      labelTooltip={t(
         "settings.summarisation.prompts.selectedPrompt.description",
       )}
-      descriptionMode="tooltip"
-      layout="stacked"
-      grouped={true}
+      inputID={promptsFieldID}
+      width="100%"
     >
       <div className="space-y-3">
         <div className="flex gap-2">
-          <Dropdown
-            selectedValue={selectedPromptId || null}
+          <Selector
+            label={t("settings.summarisation.prompts.selectedPrompt.title")}
+            isLabelHidden
             options={prompts.map((p) => ({ value: p.id, label: p.name }))}
-            onSelect={(value) => handlePromptSelect(value)}
+            value={selectedPromptId || ""}
+            onChange={(value) => handlePromptSelect(value)}
             placeholder={
               prompts.length === 0
                 ? t("settings.summarisation.prompts.noPrompts")
                 : t("settings.summarisation.prompts.selectPrompt")
             }
-            disabled={isUpdating("summarize_selected_prompt_id") || isCreating}
-            className="flex-1"
+            isDisabled={
+              isUpdating("summarize_selected_prompt_id") || isCreating
+            }
           />
           <Button
+            label={t("settings.summarisation.prompts.createNew")}
             onClick={handleStartCreate}
             variant="primary"
-            size="md"
-            disabled={isCreating}
-          >
-            {t("settings.summarisation.prompts.createNew")}
-          </Button>
+            isDisabled={isCreating}
+          />
         </div>
 
         {!isCreating && hasPrompts && selectedPrompt && (
           <div className="space-y-3">
-            <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.summarisation.prompts.promptLabel")}
-              </label>
-              <Input
-                type="text"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder={t(
-                  "settings.summarisation.prompts.promptLabelPlaceholder",
-                )}
-                variant="compact"
-              />
-            </div>
+            <TextInput
+              label={t("settings.summarisation.prompts.promptLabel")}
+              type="text"
+              value={draftName}
+              onChange={(val) => setDraftName(val)}
+              placeholder={t(
+                "settings.summarisation.prompts.promptLabelPlaceholder",
+              )}
+            />
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.summarisation.prompts.promptInstructions")}
-              </label>
-              <Textarea
+              <TextArea
+                label={t("settings.summarisation.prompts.promptInstructions")}
                 value={draftText}
-                onChange={(e) => setDraftText(e.target.value)}
+                onChange={(val) => setDraftText(val)}
                 placeholder={t(
                   "settings.summarisation.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-xs text-secondary">
                 <Trans
                   i18nKey="settings.summarisation.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -284,54 +279,43 @@ const SummarisationPromptsComponent: React.FC = () => {
 
             <div className="flex gap-2 pt-2">
               <Button
+                label={t("settings.summarisation.prompts.updatePrompt")}
                 onClick={handleUpdatePrompt}
                 variant="primary"
-                size="md"
-                disabled={!draftName.trim() || !draftText.trim() || !isDirty}
-              >
-                {t("settings.summarisation.prompts.updatePrompt")}
-              </Button>
+                isDisabled={!draftName.trim() || !draftText.trim() || !isDirty}
+              />
               <Button
+                label={t("settings.summarisation.prompts.deletePrompt")}
                 onClick={() => handleDeletePrompt(selectedPromptId)}
                 variant="secondary"
-                size="md"
-                disabled={!selectedPromptId || prompts.length <= 1}
-              >
-                {t("settings.summarisation.prompts.deletePrompt")}
-              </Button>
+                isDisabled={!selectedPromptId || prompts.length <= 1}
+              />
             </div>
           </div>
         )}
 
         {isCreating && (
           <div className="space-y-3">
-            <div className="space-y-2 block flex flex-col">
-              <label className="text-sm font-semibold text-text">
-                {t("settings.summarisation.prompts.promptLabel")}
-              </label>
-              <Input
-                type="text"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder={t(
-                  "settings.summarisation.prompts.promptLabelPlaceholder",
-                )}
-                variant="compact"
-              />
-            </div>
+            <TextInput
+              label={t("settings.summarisation.prompts.promptLabel")}
+              type="text"
+              value={draftName}
+              onChange={(val) => setDraftName(val)}
+              placeholder={t(
+                "settings.summarisation.prompts.promptLabelPlaceholder",
+              )}
+            />
 
             <div className="space-y-2 flex flex-col">
-              <label className="text-sm font-semibold">
-                {t("settings.summarisation.prompts.promptInstructions")}
-              </label>
-              <Textarea
+              <TextArea
+                label={t("settings.summarisation.prompts.promptInstructions")}
                 value={draftText}
-                onChange={(e) => setDraftText(e.target.value)}
+                onChange={(val) => setDraftText(val)}
                 placeholder={t(
                   "settings.summarisation.prompts.promptInstructionsPlaceholder",
                 )}
               />
-              <p className="text-xs text-mid-gray/70">
+              <p className="text-xs text-secondary">
                 <Trans
                   i18nKey="settings.summarisation.prompts.promptTip"
                   components={{ code: <code /> }}
@@ -341,25 +325,21 @@ const SummarisationPromptsComponent: React.FC = () => {
 
             <div className="flex gap-2 pt-2">
               <Button
+                label={t("settings.summarisation.prompts.createPrompt")}
                 onClick={handleCreatePrompt}
                 variant="primary"
-                size="md"
-                disabled={!draftName.trim() || !draftText.trim()}
-              >
-                {t("settings.summarisation.prompts.createPrompt")}
-              </Button>
+                isDisabled={!draftName.trim() || !draftText.trim()}
+              />
               <Button
+                label={t("settings.summarisation.prompts.cancel")}
                 onClick={handleCancelCreate}
                 variant="secondary"
-                size="md"
-              >
-                {t("settings.summarisation.prompts.cancel")}
-              </Button>
+              />
             </div>
           </div>
         )}
       </div>
-    </SettingContainer>
+    </Field>
   );
 };
 
@@ -367,26 +347,19 @@ export const SummarisationSettings: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="max-w-3xl w-full mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold mb-2">
-          {t("settings.summarisation.title")}
-        </h1>
-        <p className="text-sm text-text/60">
-          {t("settings.summarisation.description")}
-        </p>
-      </div>
-      <SettingsGroup>
-        <SummarisationToggle descriptionMode="tooltip" grouped={true} />
-      </SettingsGroup>
+    <SettingsPage
+      title={t("settings.summarisation.title")}
+      description={t("settings.summarisation.description")}
+    >
+      <SummarisationToggle />
 
-      <SettingsGroup title={t("settings.summarisation.api.title")}>
+      <SettingsFormGroup title={t("settings.summarisation.api.title")}>
         <SummarisationModelComponent />
-      </SettingsGroup>
+      </SettingsFormGroup>
 
-      <SettingsGroup title={t("settings.summarisation.prompts.title")}>
+      <SettingsFormGroup title={t("settings.summarisation.prompts.title")}>
         <SummarisationPromptsComponent />
-      </SettingsGroup>
-    </div>
+      </SettingsFormGroup>
+    </SettingsPage>
   );
 };

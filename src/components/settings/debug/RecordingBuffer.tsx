@@ -1,17 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Slider } from "../../ui/Slider";
+import { Slider } from "@astryxdesign/core";
 import { useSettings } from "../../../hooks/useSettings";
 
-interface RecordingBufferProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const RecordingBuffer: React.FC<RecordingBufferProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
-}) => {
+export const RecordingBuffer: React.FC = () => {
   const { t } = useTranslation();
   const { settings, updateSetting } = useSettings();
 
@@ -28,9 +20,9 @@ export const RecordingBuffer: React.FC<RecordingBufferProps> = ({
       step={50}
       label={t("settings.debug.recordingBuffer.title")}
       description={t("settings.debug.recordingBuffer.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
       formatValue={(v) => `${v}ms`}
+      valueDisplay="text"
+      width="100%"
     />
   );
 };

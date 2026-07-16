@@ -1,19 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "@/bindings";
-import { SettingContainer } from "../ui/SettingContainer";
-import { PathDisplay } from "../ui/PathDisplay";
+import { Button, Field, Skeleton } from "@astryxdesign/core";
 
-interface AppDataDirectoryProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const AppDataDirectory: React.FC<AppDataDirectoryProps> = ({
-  descriptionMode = "inline",
-  grouped = false,
-}) => {
+export const AppDataDirectory: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const [appDirPath, setAppDirPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,38 +40,34 @@ export const AppDataDirectory: React.FC<AppDataDirectoryProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-        <div className="h-8 bg-gray-100 rounded"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600 text-sm">
-          {t("errors.loadDirectory", { error })}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <SettingContainer
-      title={t("settings.about.appDataDirectory.title")}
+    <Field
+      label={t("settings.about.appDataDirectory.title")}
       description={t("settings.about.appDataDirectory.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      layout="stacked"
+      inputID={inputID}
+      width="100%"
+      status={
+        error
+          ? { type: "error", message: t("errors.loadDirectory", { error }) }
+          : undefined
+      }
     >
-      <PathDisplay
-        path={appDirPath}
-        onOpen={handleOpen}
-        disabled={!appDirPath}
-      />
-    </SettingContainer>
+      {loading ? (
+        <Skeleton height={36} />
+      ) : (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0 px-2 py-2 bg-muted border border-border rounded-lg text-xs font-mono break-all select-text cursor-text">
+            {appDirPath}
+          </div>
+          <Button
+            label={t("common.open")}
+            onClick={handleOpen}
+            variant="secondary"
+            size="sm"
+            isDisabled={!appDirPath}
+          />
+        </div>
+      )}
+    </Field>
   );
 };

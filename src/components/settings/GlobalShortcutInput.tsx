@@ -1,31 +1,42 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useId, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   getKeyName,
   formatKeyCombination,
   normalizeKey,
 } from "../../lib/utils/keyboard";
-import { ResetButton } from "../ui/ResetButton";
-import { SettingContainer } from "../ui/SettingContainer";
+import { Button, Field, HStack, IconButton, Kbd } from "@astryxdesign/core";
+import ResetIcon from "../icons/ResetIcon";
+
+// Convert stored binding format (e.g. "command+option_left+k") to Kbd keys format
+// ("mod+alt+k"). Kbd handles platform-aware display of `mod` (⌘ / Ctrl).
+const toKbdFormat = (binding: string): string =>
+  binding
+    .split("+")
+    .map((k) => {
+      const part = k.replace(/_left$|_right$/i, "").toLowerCase();
+      if (part === "command" || part === "cmd" || part === "meta") return "mod";
+      if (part === "option") return "alt";
+      if (part === "control") return "ctrl";
+      return part;
+    })
+    .join("+");
 import { useSettings } from "../../hooks/useSettings";
 import { useOsType } from "../../hooks/useOsType";
 import { commands } from "@/bindings";
 import { toast } from "sonner";
 
 interface GlobalShortcutInputProps {
-  descriptionMode?: "inline" | "tooltip";
-  grouped?: boolean;
   shortcutId: string;
   disabled?: boolean;
 }
 
 export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
   shortcutId,
   disabled = false,
 }) => {
   const { t } = useTranslation();
+  const inputID = useId();
   const { getSetting, updateBinding, resetBinding, isUpdating, isLoading } =
     useSettings();
   const [keyPressed, setKeyPressed] = useState<string[]>([]);
@@ -34,7 +45,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
     null,
   );
   const [originalBinding, setOriginalBinding] = useState<string>("");
-  const shortcutRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+  const shortcutRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const osType = useOsType();
 
   const bindings = getSetting("bindings") || {};
@@ -200,55 +211,55 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   };
 
   // Store references to shortcut elements
-  const setShortcutRef = (id: string, ref: HTMLDivElement | null) => {
+  const setShortcutRef = (id: string, ref: HTMLElement | null) => {
     shortcutRefs.current.set(id, ref);
   };
 
   // If still loading, show loading state
   if (isLoading) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.loading")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
   // If no bindings are loaded, show empty state
   if (Object.keys(bindings).length === 0) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
   const binding = bindings[shortcutId];
   if (!binding) {
     return (
-      <SettingContainer
-        title={t("settings.general.shortcut.title")}
+      <Field
+        label={t("settings.general.shortcut.title")}
         description={t("settings.general.shortcut.notFound")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
+        inputID={inputID}
+        width="100%"
       >
-        <div className="text-sm text-mid-gray">
+        <div className="text-sm text-secondary">
           {t("settings.general.shortcut.none")}
         </div>
-      </SettingContainer>
+      </Field>
     );
   }
 
@@ -263,35 +274,48 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   );
 
   return (
-    <SettingContainer
-      title={translatedName}
+    <Field
+      label={translatedName}
       description={translatedDescription}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      disabled={disabled}
-      layout="horizontal"
+      inputID={inputID}
+      isDisabled={disabled}
+      width="100%"
     >
-      <div className="flex items-center space-x-1">
-        {editingShortcutId === shortcutId ? (
-          <div
-            ref={(ref) => setShortcutRef(shortcutId, ref)}
-            className="px-2 py-1 text-sm font-semibold border border-logo-primary bg-logo-primary/30 rounded-md"
-          >
-            {formatCurrentKeys()}
-          </div>
-        ) : (
-          <div
-            className="px-2 py-1 text-sm font-semibold bg-mid-gray/10 border border-mid-gray/80 hover:bg-logo-primary/10 rounded-md cursor-pointer hover:border-logo-primary"
-            onClick={() => startRecording(shortcutId)}
-          >
-            {formatKeyCombination(binding.current_binding, osType)}
-          </div>
-        )}
-        <ResetButton
-          onClick={() => resetBinding(shortcutId)}
-          disabled={isUpdating(`binding_${shortcutId}`)}
+      <HStack
+        gap={2}
+        align="center"
+        ref={(ref) => setShortcutRef(shortcutId, ref)}
+      >
+        <div>
+          <Kbd
+            keys={
+              editingShortcutId === shortcutId && recordedKeys.length > 0
+                ? toKbdFormat(recordedKeys.join("+"))
+                : toKbdFormat(binding.current_binding)
+            }
+          />
+        </div>
+        <Button
+          label={
+            editingShortcutId === shortcutId
+              ? t("settings.general.shortcut.pressKeys")
+              : t("settings.general.shortcut.changeShortcut")
+          }
+          onClick={() => {
+            if (editingShortcutId !== shortcutId) startRecording(shortcutId);
+          }}
+          variant={editingShortcutId === shortcutId ? "secondary" : "ghost"}
+          size="sm"
+          isDisabled={disabled}
         />
-      </div>
-    </SettingContainer>
+        <IconButton
+          icon={<ResetIcon />}
+          label={t("common.reset")}
+          onClick={() => resetBinding(shortcutId)}
+          isDisabled={isUpdating(`binding_${shortcutId}`)}
+          variant="ghost"
+        />
+      </HStack>
+    </Field>
   );
 };

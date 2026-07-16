@@ -1,19 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { commands } from "@/bindings";
-import { SettingContainer } from "../../ui/SettingContainer";
-import { PathDisplay } from "../../ui/PathDisplay";
+import { Button, Field, Skeleton } from "@astryxdesign/core";
 
-interface LogDirectoryProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
-
-export const LogDirectory: React.FC<LogDirectoryProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
-}) => {
+export const LogDirectory: React.FC = () => {
   const { t } = useTranslation();
+  const inputID = useId();
   const [logDir, setLogDir] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,24 +43,33 @@ export const LogDirectory: React.FC<LogDirectoryProps> = ({
   };
 
   return (
-    <SettingContainer
-      title={t("settings.debug.logDirectory.title")}
+    <Field
+      label={t("settings.debug.logDirectory.title")}
       description={t("settings.debug.logDirectory.description")}
-      descriptionMode={descriptionMode}
-      grouped={grouped}
-      layout="stacked"
+      inputID={inputID}
+      width="100%"
+      status={
+        error
+          ? { type: "error", message: t("errors.loadDirectory", { error }) }
+          : undefined
+      }
     >
       {loading ? (
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-100 rounded" />
-        </div>
-      ) : error ? (
-        <div className="p-3 bg-red-50 border border-red-200 rounded text-xs text-red-600">
-          {t("errors.loadDirectory", { error })}
-        </div>
+        <Skeleton height={36} />
       ) : (
-        <PathDisplay path={logDir} onOpen={handleOpen} disabled={!logDir} />
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0 px-2 py-2 bg-muted border border-border rounded-lg text-xs font-mono break-all select-text cursor-text">
+            {logDir}
+          </div>
+          <Button
+            label={t("common.open")}
+            onClick={handleOpen}
+            variant="secondary"
+            size="sm"
+            isDisabled={!logDir}
+          />
+        </div>
       )}
-    </SettingContainer>
+    </Field>
   );
 };

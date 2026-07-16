@@ -1,7 +1,6 @@
 import { type FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { SettingContainer } from "../ui/SettingContainer";
-import { Dropdown, type DropdownOption } from "../ui/Dropdown";
+import { Selector } from "@astryxdesign/core";
 import { useSettings } from "../../hooks/useSettings";
 import { commands } from "@/bindings";
 import type {
@@ -16,11 +15,6 @@ const ORT_LABELS: Record<OrtAcceleratorSetting, string> = {
   directml: "DirectML",
   rocm: "ROCm",
 };
-
-interface AccelerationSelectorProps {
-  descriptionMode?: "tooltip" | "inline";
-  grouped?: boolean;
-}
 
 /**
  * Whisper dropdown encodes accelerator + device in a single value:
@@ -50,20 +44,21 @@ function decodeWhisperValue(value: string): {
   return { accelerator: "auto", gpuDevice: -1 };
 }
 
-export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
-  descriptionMode = "tooltip",
-  grouped = false,
-}) => {
+export const AccelerationSelector: FC = () => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, isUpdating } = useSettings();
 
-  const [whisperOptions, setWhisperOptions] = useState<DropdownOption[]>([]);
-  const [ortOptions, setOrtOptions] = useState<DropdownOption[]>([]);
+  const [whisperOptions, setWhisperOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [ortOptions, setOrtOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   useEffect(() => {
     commands.getAvailableAccelerators().then((available) => {
       // Build combined Whisper options: Auto, [GPU devices...], CPU
-      const opts: DropdownOption[] = [
+      const opts: Array<{ value: string; label: string }> = [
         {
           value: "auto",
           label: t("settings.advanced.acceleration.gpuDevice.auto"),
@@ -113,40 +108,29 @@ export const AccelerationSelector: FC<AccelerationSelectorProps> = ({
 
   return (
     <>
-      <SettingContainer
-        title={t("settings.advanced.acceleration.whisper.title")}
+      <Selector
+        label={t("settings.advanced.acceleration.whisper.title")}
         description={t("settings.advanced.acceleration.whisper.description")}
-        descriptionMode={descriptionMode}
-        grouped={grouped}
-        layout="horizontal"
-      >
-        <Dropdown
-          options={whisperOptions}
-          selectedValue={currentWhisper}
-          onSelect={handleWhisperChange}
-          disabled={
-            isUpdating("whisper_accelerator") ||
-            isUpdating("whisper_gpu_device")
-          }
-        />
-      </SettingContainer>
+        options={whisperOptions}
+        value={currentWhisper}
+        onChange={handleWhisperChange}
+        isDisabled={
+          isUpdating("whisper_accelerator") || isUpdating("whisper_gpu_device")
+        }
+        width="100%"
+      />
       {ortOptions.length > 2 && (
-        <SettingContainer
-          title={t("settings.advanced.acceleration.ort.title")}
+        <Selector
+          label={t("settings.advanced.acceleration.ort.title")}
           description={t("settings.advanced.acceleration.ort.description")}
-          descriptionMode={descriptionMode}
-          grouped={grouped}
-          layout="horizontal"
-        >
-          <Dropdown
-            options={ortOptions}
-            selectedValue={currentOrt}
-            onSelect={(value) =>
-              updateSetting("ort_accelerator", value as OrtAcceleratorSetting)
-            }
-            disabled={isUpdating("ort_accelerator")}
-          />
-        </SettingContainer>
+          options={ortOptions}
+          value={currentOrt}
+          onChange={(value) =>
+            updateSetting("ort_accelerator", value as OrtAcceleratorSetting)
+          }
+          isDisabled={isUpdating("ort_accelerator")}
+          width="100%"
+        />
       )}
     </>
   );
