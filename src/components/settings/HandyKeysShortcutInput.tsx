@@ -44,7 +44,7 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [currentKeys, setCurrentKeys] = useState<string>("");
   const [originalBinding, setOriginalBinding] = useState<string>("");
-  const shortcutRef = useRef<HTMLDivElement | null>(null);
+  const shortcutRef = useRef<HTMLElement | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   // Use a ref to track currentKeys for the event handler (avoids stale closure)
   const currentKeysRef = useRef<string>("");
@@ -271,8 +271,8 @@ export const HandyKeysShortcutInput: React.FC<HandyKeysShortcutInputProps> = ({
       isDisabled={disabled}
       width="100%"
     >
-      <HStack gap={2} align="center">
-        <div ref={shortcutRef}>
+      <HStack gap={2} align="center" ref={shortcutRef}>
+        <div>
           <Kbd
             keys={
               isRecording && currentKeys

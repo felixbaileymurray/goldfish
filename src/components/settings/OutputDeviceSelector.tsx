@@ -20,6 +20,7 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
       isUpdating,
       isLoading,
       outputDevices,
+      refreshOutputDevices,
     } = useSettings();
 
     const selectedOutputDevice =
@@ -35,6 +36,12 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
       await resetSetting("selected_output_device");
     };
 
+    // Astryx's Selector has no onOpen/onRefresh hook, so rescan devices on
+    // any click in this control (mirrors the old Dropdown's refresh-on-open).
+    const handleRefreshOnInteract = () => {
+      refreshOutputDevices().catch(console.error);
+    };
+
     const outputDeviceOptions = outputDevices.map((device: AudioDevice) => ({
       value: device.name,
       label: device.name,
@@ -48,7 +55,7 @@ export const OutputDeviceSelector: React.FC<OutputDeviceSelectorProps> =
         isDisabled={disabled}
         width="100%"
       >
-        <HStack gap={1}>
+        <HStack gap={1} onClickCapture={handleRefreshOnInteract}>
           <Selector
             label={t("settings.sound.outputDevice.title")}
             isLabelHidden

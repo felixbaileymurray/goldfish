@@ -30,6 +30,12 @@ export const MicrophoneSelector: React.FC = React.memo(() => {
     await resetSetting("selected_microphone");
   };
 
+  // Astryx's Selector has no onOpen/onRefresh hook, so rescan devices on any
+  // click in this control (mirrors the old Dropdown's refresh-on-open).
+  const handleRefreshOnInteract = () => {
+    refreshAudioDevices().catch(console.error);
+  };
+
   const microphoneOptions = audioDevices.map((device) => ({
     value: device.name,
     label: device.name,
@@ -42,7 +48,7 @@ export const MicrophoneSelector: React.FC = React.memo(() => {
       inputID={inputID}
       width="100%"
     >
-      <HStack gap={1}>
+      <HStack gap={1} onClickCapture={handleRefreshOnInteract}>
         <Selector
           label={t("settings.sound.microphone.title")}
           isLabelHidden

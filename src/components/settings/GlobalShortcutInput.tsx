@@ -45,7 +45,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
     null,
   );
   const [originalBinding, setOriginalBinding] = useState<string>("");
-  const shortcutRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+  const shortcutRefs = useRef<Map<string, HTMLElement | null>>(new Map());
   const osType = useOsType();
 
   const bindings = getSetting("bindings") || {};
@@ -211,7 +211,7 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
   };
 
   // Store references to shortcut elements
-  const setShortcutRef = (id: string, ref: HTMLDivElement | null) => {
+  const setShortcutRef = (id: string, ref: HTMLElement | null) => {
     shortcutRefs.current.set(id, ref);
   };
 
@@ -281,8 +281,12 @@ export const GlobalShortcutInput: React.FC<GlobalShortcutInputProps> = ({
       isDisabled={disabled}
       width="100%"
     >
-      <HStack gap={2} align="center">
-        <div ref={(ref) => setShortcutRef(shortcutId, ref)}>
+      <HStack
+        gap={2}
+        align="center"
+        ref={(ref) => setShortcutRef(shortcutId, ref)}
+      >
+        <div>
           <Kbd
             keys={
               editingShortcutId === shortcutId && recordedKeys.length > 0
