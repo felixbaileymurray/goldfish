@@ -1,12 +1,27 @@
 # Fork strategy: Handy as engine, Goldfish as product
 
-**Last updated:** 2026-05-19
+**Last updated:** 2026-07-11
+
+> **How this doc reads now.** Two things have changed since it was written, both recorded in
+> [decisions.md](./decisions.md) (2026-07-11):
+>
+> 1. **Isolation is by _layer_, not by _directory_.** The original plan — quarantine all
+>    Goldfish code under `src-tauri/src/goldfish/` and `src/goldfish/` — did not survive contact
+>    with the product. Goldfish's differentiators (dual-pipeline, medallion persistence, the Clean
+>    stage, the Astryx UI) are modifications to the engine's own decision points, not additive
+>    sidecars, so they landed in place. What actually keeps merges clean is the **engine vs.
+>    product layer split** described in [Mental model](#mental-model) below — the engine layer
+>    tracks upstream, the product layer is owned outright. The `goldfish/` dirs are now a vestigial
+>    seam (a `ping` command). Sections below that assume directory quarantine are flagged inline.
+> 2. **The fork is pull-only (Handy → Goldfish).** Nothing is ever contributed back. Any guidance
+>    below about cherry-picking to upstream, two-branch models for clean contribution, or Handy's
+>    community process has been removed or is void.
 
 ## Intent
 
 Goldfish is a **product fork**, not a cosmetic rebrand. It is a new application that **reuses Handy’s technical foundation** (Tauri, cpal + VAD + `transcribe-rs`, transcription coordinator, paste pipeline, model downloads) instead of reimplementing offline speech-to-text.
 
-Handy’s [CONTRIBUTING.md](../CONTRIBUTING.md) describes the project as aiming to be “the most forkable speech-to-text app” — this fork follows that model.
+Handy describes itself as aiming to be [“the most forkable speech-to-text app”](https://github.com/cjpais/Handy/blob/main/CONTRIBUTING.md) — this fork takes it up on that (in the pull-only direction: we fork the engine, we don't feed back).
 
 ### What you need (not a global string replace)
 
@@ -58,10 +73,9 @@ This is what the fork uses today. Workflow lives in [UPSTREAM.md](../UPSTREAM.md
 | `upstream-sync` | Stays close to `upstream/main`; engine fixes only |
 | `goldfish`      | Default dev: product identity + Goldfish features |
 
-Switch when:
-
-1. **An upstream merge breaks something** and we need to ship a Goldfish-only hotfix without pulling in the rest of that merge, **or**
-2. **We start contributing engine fixes back upstream** and need a clean branch to cherry-pick from.
+Switch when **an upstream merge breaks something** and we need to ship a Goldfish-only hotfix
+without pulling in the rest of that merge. (The fork is pull-only, so "contributing fixes back
+upstream" is *not* a trigger — that path does not exist.)
 
 Two-branch merge flow (for when we get there):
 
@@ -69,7 +83,9 @@ Two-branch merge flow (for when we get there):
 2. `git checkout goldfish && git merge upstream-sync`
 3. `bun run lint`, `cargo test` / `bun run tauri build`
 
-**Avoid:** Goldfish-specific logic spread across dozens of upstream files. The branch model does not solve this — directory layout does.
+**What actually keeps merges clean** is the engine/product **layer** split, not the branch model
+and not directory quarantine: keep the engine layer close to upstream and merge it; own the product
+layer outright and never merge upstream's version of it.
 
 ### UPSTREAM.md (repo root)
 
@@ -97,14 +113,19 @@ Created 2026-05-19. Documents remotes, merge workflow, conflict hot-spots, and t
 
 ## Extending without merge pain
 
-### 1. Goldfish-only directories
+### 1. Goldfish-only directories (superseded — vestigial)
 
 ```
-src-tauri/src/goldfish/     # Rust: commands, services, hooks
-src/goldfish/               # React: screens, stores, flows
+src-tauri/src/goldfish/     # Rust: only a `goldfish_ping` smoke-test command remains
+src/goldfish/               # React: empty barrel
 ```
 
-These are the source of truth for "what is ours." Concrete file layout and exact `lib.rs` edits live in [scaffold.md](./scaffold.md).
+These were meant to be the source of truth for "what is ours." In practice almost nothing lives
+here — the real differentiators went in place (see the banner at the top). "What is ours" is now
+answered by **layer** (product vs. engine), not by path. Keep these dirs only as a documented seam
+for genuinely-additive future modules; a self-contained new capability (a summarisation-style
+service) *can* still start here to keep it clearly non-engine. The original scaffold spec is in
+[scaffold.md](./scaffold.md), retained as history.
 
 ### 2. The `lib.rs` touchpoint reality
 
@@ -133,39 +154,43 @@ Do not hand-edit `bindings.ts` ever. Do not try to merge it carefully — regene
 
 ### 4. Post-transcription / engine hooks
 
-We have not yet picked a concrete hook location for post-transcription work. Real hook candidates in the codebase:
+**Resolved.** The post-transcription hook is now a real function: `process_transcription_output()`,
+parameterised by a `CaptureMode` (Dictate/Keep), is the single spine that runs cleanup →
+persistence → surface. It is the shared entry point for live capture, retry, and audio import (see
+`src-tauri/src/actions.rs`, `commands/history.rs`, and the 2026-06-28 decision in
+[decisions.md](./decisions.md)). New post-transcription behaviour extends this path rather than
+picking a fresh hook. (An earlier version of this doc named a `process_transcription_output` that
+did not exist; it does now, built deliberately as the pipeline spine.)
 
-- [src-tauri/src/transcription_coordinator.rs](../src-tauri/src/transcription_coordinator.rs) — `stop()` (line 177), end of the recording→transcribe→paste pipeline.
-- [src-tauri/src/managers/transcription.rs](../src-tauri/src/managers/transcription.rs) — `TranscriptionManager` transcribe entry points.
-
-**Decide when the first feature needs a hook**, not before — picking blind invites guessing wrong about the threading model.
-
-Until then:
+For any *new* seam not covered by that spine, still prefer additive over invasive:
 
 | Need                | Prefer                                                                                                              | Avoid                                |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | New shortcut action | Goldfish-only command invoked from a binding                                                                        | Copy-paste of `shortcut::handy_keys` |
 | New settings        | Goldfish section behind its own route                                                                               | Edit every Handy settings file       |
-| New UI screen       | New route in `src/goldfish/`, mounted from `App.tsx` via the [composition pattern](#5-frontend-composition-pattern) | Rewrite `App.tsx` wholesale          |
+| New UI screen       | Build directly in Astryx — see [Frontend composition pattern](#5-frontend-composition-pattern-superseded), now superseded | Rewrite `App.tsx` wholesale          |
 
-### 5. Frontend composition pattern
+### 5. Frontend composition pattern (superseded)
 
-**Deferred** until the first Goldfish UI lands. The two viable patterns:
+This assumed Goldfish UI would be mounted as a slot/route beside Handy's. It wasn't — the UI is a
+**full in-place Astryx rebuild** that replaced Handy's settings tree and primitives outright (the
+product layer is owned, not merged). There is no `<GoldfishMount/>`; `App.tsx`, `Sidebar.tsx`, and
+`src/components/settings/**` are Goldfish's own. Build UI directly, using Astryx components.
 
-- **Route registry** — `src/goldfish/routes.ts` exports an array of `{ path, element }`; `App.tsx` spreads it into its router. One `App.tsx` touchpoint.
-- **Slot in App.tsx** — A single `<GoldfishMount />` component imported and rendered conditionally. One `App.tsx` touchpoint.
+### 6. i18n (partially superseded)
 
-Pick the one that fits the first feature; do not generalize ahead of time.
+The `goldfish.json` namespace was never adopted — Goldfish strings live directly in the existing
+`translation.json` files, since the UI is owned rather than overlaid. Still sound: use `{{appName}}`
+for the product name, and when adding a string, add the `en` key and let the other locales follow;
+don't hand-translate all 20 by hand.
 
-### 6. i18n
+### 7. Settings store + history DB (superseded)
 
-- Add `src/i18n/locales/en/goldfish.json` (namespace) and load it from `src/i18n/index.ts` (one touchpoint, low conflict risk).
-- Use `{{appName}}` in Goldfish strings; do **not** mass-edit all 20 upstream locale files.
-
-### 7. Settings store + history DB
-
-- **Settings** live in `tauri-plugin-store` (additive, JSON). Namespace Goldfish keys with a `goldfish_` prefix to avoid colliding with upstream keys.
-- **History** is SQLite ([src-tauri/src/managers/history.rs](../src-tauri/src/managers/history.rs)). If Goldfish ever adds columns, prefix them `goldfish_` and use a separate migration so upstream schema changes don't fight Goldfish ones.
+The `goldfish_`-prefix / separate-migration advice assumed a quarantined schema merged alongside
+upstream's. In practice the history schema (`managers/history.rs`) and settings (`settings.rs`) were
+extended **in place** — the `saved` flag, summary columns, and retention live in the main tables,
+unprefixed, because Goldfish owns this layer and does not merge upstream's version of it. New
+columns extend these tables directly; there is no upstream schema to avoid colliding with.
 
 ## Staying current with Handy
 
@@ -175,14 +200,17 @@ Pick the one that fits the first feature; do not generalize ahead of time.
 
 **Cadence:** When you need a fix, or ~monthly — then smoke-test record → transcribe → paste.
 
-**Upstream features:** Do not expect Goldfish features to be accepted during Handy’s feature freeze; upstream **bugfixes** only unless you follow their discussion process.
+**Direction:** Pull-only. Take Handy's **bugfixes and engine improvements**; contribute nothing
+back. Goldfish features are never PR'd upstream, so Handy's feature freeze and discussion process
+are irrelevant here.
 
 ## What not to do
 
 - Maintain a duplicate “goldfish-core” crate unless merges fail repeatedly.
 - Rename every `handy` symbol in Rust upfront.
 - Use Handy’s updater endpoint for Goldfish builds.
-- PR Goldfish features to Handy without community discussion.
+- Open PRs or issues against `cjpais/Handy`, or shape a change to be upstream-contributable — the
+  fork is pull-only.
 
 ## Dev environment prerequisite
 

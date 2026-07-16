@@ -2,7 +2,7 @@
 
 Personal documentation for the Goldfish project — a new application built on the technical foundation of [Handy](https://github.com/cjpais/Handy).
 
-This folder is for **your** tracking: architecture notes, fork strategy, and decisions as the project evolves. It is separate from upstream Handy docs (`README.md`, `AGENTS.md`, `BUILD.md` at the repo root).
+This folder is for **your** tracking: architecture notes, fork strategy, and decisions as the project evolves. It complements the root-level docs — [`CLAUDE.md`](../CLAUDE.md) (agent orientation + the pull-only fork rule), [`AGENTS.md`](../AGENTS.md) (build/architecture/style), and [`BUILD.md`](../BUILD.md) (platform build setup).
 
 ## Contents
 

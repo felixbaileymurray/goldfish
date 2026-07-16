@@ -1,8 +1,13 @@
 # Codebase overview
 
-**Last reviewed:** 2026-05-16  
-**Upstream:** [cjpais/Handy](https://github.com/cjpais/Handy) @ ~0.8.3  
+**Last reviewed:** 2026-07-11  
+**Upstream:** [cjpais/Handy](https://github.com/cjpais/Handy) @ ~0.8.3 (pull-only baseline; see [UPSTREAM.md](../UPSTREAM.md))  
 **Fork remote:** [felixbaileymurray/goldfish](https://github.com/felixbaileymurray/goldfish)
+
+> Goldfish has diverged materially from the engine baseline: a dual-mode (Dictate/Keep) capture
+> pipeline with an always-on Clean stage, medallion persistence, summarisation, and a full Astryx
+> UI rebuild. The engine layer (audio/VAD/models/`transcribe-rs`) still tracks upstream; everything
+> above it is Goldfish's own. See [fork-strategy.md](./fork-strategy.md).
 
 ## What this repository is
 
@@ -48,7 +53,7 @@ flowchart LR
 
 | Layer         | Technologies                                                                      |
 | ------------- | --------------------------------------------------------------------------------- |
-| **Frontend**  | React 18, TypeScript, Vite 6, Tailwind 4, Zustand (+ Immer), i18next (20 locales) |
+| **Frontend**  | React 19, TypeScript, Vite 6, Tailwind 4, Zustand (+ Immer), i18next (20 locales), Astryx design system |
 | **Shell**     | Tauri 2.10                                                                        |
 | **IPC**       | tauri-specta → auto-generated `src/bindings.ts` (~80 commands)                    |
 | **Inference** | `transcribe-rs` (Whisper via Metal/Vulkan; Parakeet/Moonshine/etc. via ONNX)      |
@@ -77,7 +82,7 @@ flowchart LR
 | `src/i18n/locales/`            | 20 translation JSON files                             |
 | `.github/workflows/`           | CI: build, test, Playwright, Nix, release             |
 | `flake.nix` / `nix/`           | Nix packaging                                         |
-| `AGENTS.md` / `BUILD.md`       | Upstream dev docs (root)                              |
+| `AGENTS.md` / `BUILD.md`       | Dev docs (root): commands, architecture, build setup  |
 
 ## Frontend
 
@@ -92,7 +97,10 @@ flowchart LR
 - `src/stores/modelStore.ts` — models, downloads, progress
 - `src/hooks/useSettings.ts` — React facade for settings store
 
-**Settings UI sections** (`src/components/Sidebar.tsx`): General, Models, Advanced, History, Post-processing, Debug, About.
+**Settings UI sections** (`src/components/settings/sections.ts`): Shortcuts, Capture, Transcription,
+Clean (post-processing), Output, Summarisation, Retention, App, Debug (dev-only), About — grouped
+into Capture / Dictate / Keep / App. Settings are a full-panel overlay (gear icon), not a sidebar
+section; the sidebar is scoped to product areas. See [decisions.md](./decisions.md) for the IA rationale.
 
 **Onboarding:** Accessibility permissions → model download → done.
 
@@ -150,12 +158,14 @@ bun run format
 
 **Prerequisites:** Rust (stable), [Bun](https://bun.sh/), platform deps in `BUILD.md`.
 
-## Upstream governance (if contributing back to Handy)
+## Upstream relationship (pull-only)
 
-- Feature freeze on upstream — new features need community discussion
-- Bug fixes prioritized
-- Strict PR/issue templates in `.github/`
-- MIT license; copyright CJ Pais
+The link to `cjpais/Handy` is **one-way**: Goldfish pulls engine and stability fixes from upstream
+and contributes nothing back. Handy's own governance (feature freeze, community-feedback-before-PR,
+issue/PR templates) does not apply here — do not open PRs or issues against `cjpais/Handy`. MIT
+license retained; speech engine derived from Handy (copyright CJ Pais) — keep the attribution. See
+[UPSTREAM.md](../UPSTREAM.md) for the merge workflow and [fork-strategy.md](./fork-strategy.md) for
+the rationale.
 
 ## Observations relevant to Goldfish
 
