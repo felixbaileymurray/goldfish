@@ -24,6 +24,7 @@ export const TranscriptionSettings: React.FC = () => {
   const { t } = useTranslation();
   const [switchingModelId, setSwitchingModelId] = useState<string | null>(null);
   const [languageFilter, setLanguageFilter] = useState("all");
+  const [isAvailableModelsOpen, setIsAvailableModelsOpen] = useState(false);
   const {
     models,
     currentModel,
@@ -188,7 +189,8 @@ export const TranscriptionSettings: React.FC = () => {
           {availableModels.length > 0 && (
             <Section variant="transparent" padding={4}>
               <Collapsible
-                defaultIsOpen={false}
+                isOpen={isAvailableModelsOpen}
+                onOpenChange={setIsAvailableModelsOpen}
                 trigger={
                   <Heading level={3}>
                     {t("settings.models.availableModelsCount", {
@@ -197,22 +199,24 @@ export const TranscriptionSettings: React.FC = () => {
                   </Heading>
                 }
               >
-                <VStack gap={3}>
-                  {availableModels.map((model: ModelInfo) => (
-                    <ModelCard
-                      key={model.id}
-                      model={model}
-                      status={getModelStatus(model.id)}
-                      onSelect={handleModelSelect}
-                      onDownload={downloadModel}
-                      onDelete={handleModelDelete}
-                      onCancel={handleModelCancel}
-                      downloadProgress={getDownloadProgress(model.id)}
-                      downloadSpeed={getDownloadSpeed(model.id)}
-                      showRecommended={false}
-                    />
-                  ))}
-                </VStack>
+                {isAvailableModelsOpen && (
+                  <VStack gap={3} style={{ marginTop: 8 }}>
+                    {availableModels.map((model: ModelInfo) => (
+                      <ModelCard
+                        key={model.id}
+                        model={model}
+                        status={getModelStatus(model.id)}
+                        onSelect={handleModelSelect}
+                        onDownload={downloadModel}
+                        onDelete={handleModelDelete}
+                        onCancel={handleModelCancel}
+                        downloadProgress={getDownloadProgress(model.id)}
+                        downloadSpeed={getDownloadSpeed(model.id)}
+                        showRecommended={false}
+                      />
+                    ))}
+                  </VStack>
+                )}
               </Collapsible>
             </Section>
           )}
