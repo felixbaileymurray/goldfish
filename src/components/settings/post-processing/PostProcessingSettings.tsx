@@ -72,7 +72,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
                   "settings.postProcessing.api.baseUrl.placeholder",
                 )}
                 disabled={state.isBaseUrlUpdating}
-                className="min-w-[380px]"
+                className="min-w-95"
               />
             </Field>
           )}
@@ -88,7 +88,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
               onBlur={state.handleApiKeyChange}
               placeholder={t("settings.postProcessing.api.apiKey.placeholder")}
               disabled={state.isApiKeyUpdating}
-              className="min-w-[320px]"
+              className="min-w-80"
             />
           </Field>
         </>
@@ -119,7 +119,7 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
               }
               onSelect={state.handleModelSelect}
               onCreate={state.handleModelCreate}
-              className="flex-1 min-w-[380px]"
+              className="flex-1 min-w-95"
             />
             <IconButton
               icon={

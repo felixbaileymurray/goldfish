@@ -93,7 +93,7 @@ const SummarisationModelComponent: React.FC = () => {
                 updateSummarizeModel(providerId, value.trim())
               }
               onCreate={(value) => updateSummarizeModel(providerId, value)}
-              className="flex-1 min-w-[380px]"
+              className="flex-1 min-w-95"
             />
             <IconButton
               icon={

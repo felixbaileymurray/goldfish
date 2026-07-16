@@ -235,7 +235,7 @@ export const ModelsSettings: React.FC = () => {
                   }`}
                 >
                   <Globe className="w-3.5 h-3.5" />
-                  <span className="max-w-[120px] truncate">
+                  <span className="max-w-30 truncate">
                     {selectedLanguageLabel}
                   </span>
                   <ChevronDown
