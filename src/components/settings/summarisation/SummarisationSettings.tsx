@@ -69,7 +69,9 @@ const SummarisationModelComponent: React.FC = () => {
         inputID={providerFieldID}
         width="100%"
       >
-        <p className="text-sm text-secondary">{provider?.label ?? providerId}</p>
+        <p className="text-sm text-secondary">
+          {provider?.label ?? providerId}
+        </p>
       </Field>
 
       {!isAppleProvider && (

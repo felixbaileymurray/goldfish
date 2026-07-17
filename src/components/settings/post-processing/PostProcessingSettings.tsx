@@ -1,19 +1,9 @@
-import React, { useEffect, useId, useState } from "react";
-import { Trans, useTranslation } from "react-i18next";
+import React, { useId } from "react";
+import { useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
-import { commands } from "@/bindings";
 
 import { Banner } from "@astryxdesign/core/Banner";
-import {
-  Button,
-  Field,
-  HStack,
-  IconButton,
-  Selector,
-  Switch,
-  TextArea,
-  TextInput,
-} from "@astryxdesign/core";
+import { Field, HStack, IconButton, Switch } from "@astryxdesign/core";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
 import { BaseUrlField } from "../PostProcessingSettingsApi/BaseUrlField";
@@ -139,270 +129,22 @@ const PostProcessingSettingsApiComponent: React.FC = () => {
   );
 };
 
-const PostProcessingSettingsPromptsComponent: React.FC = () => {
-  const { t } = useTranslation();
-  const promptsFieldID = useId();
-  const { getSetting, updateSetting, isUpdating, refreshSettings } =
-    useSettings();
-  const [isCreating, setIsCreating] = useState(false);
-  const [draftName, setDraftName] = useState("");
-  const [draftText, setDraftText] = useState("");
-
-  const prompts = getSetting("post_process_prompts") || [];
-  const selectedPromptId = getSetting("post_process_selected_prompt_id") || "";
-  const selectedPrompt =
-    prompts.find((prompt) => prompt.id === selectedPromptId) || null;
-
-  useEffect(() => {
-    if (isCreating) return;
-
-    if (selectedPrompt) {
-      setDraftName(selectedPrompt.name);
-      setDraftText(selectedPrompt.prompt);
-    } else {
-      setDraftName("");
-      setDraftText("");
-    }
-  }, [
-    isCreating,
-    selectedPromptId,
-    selectedPrompt?.name,
-    selectedPrompt?.prompt,
-  ]);
-
-  const handlePromptSelect = (promptId: string | null) => {
-    if (!promptId) return;
-    updateSetting("post_process_selected_prompt_id", promptId);
-    setIsCreating(false);
-  };
-
-  const handleCreatePrompt = async () => {
-    if (!draftName.trim() || !draftText.trim()) return;
-
-    try {
-      const result = await commands.addPostProcessPrompt(
-        draftName.trim(),
-        draftText.trim(),
-      );
-      if (result.status === "ok") {
-        await refreshSettings();
-        updateSetting("post_process_selected_prompt_id", result.data.id);
-        setIsCreating(false);
-      }
-    } catch (error) {
-      console.error("Failed to create prompt:", error);
-    }
-  };
-
-  const handleUpdatePrompt = async () => {
-    if (!selectedPromptId || !draftName.trim() || !draftText.trim()) return;
-
-    try {
-      await commands.updatePostProcessPrompt(
-        selectedPromptId,
-        draftName.trim(),
-        draftText.trim(),
-      );
-      await refreshSettings();
-    } catch (error) {
-      console.error("Failed to update prompt:", error);
-    }
-  };
-
-  const handleDeletePrompt = async (promptId: string) => {
-    if (!promptId) return;
-
-    try {
-      await commands.deletePostProcessPrompt(promptId);
-      await refreshSettings();
-      setIsCreating(false);
-    } catch (error) {
-      console.error("Failed to delete prompt:", error);
-    }
-  };
-
-  const handleCancelCreate = () => {
-    setIsCreating(false);
-    if (selectedPrompt) {
-      setDraftName(selectedPrompt.name);
-      setDraftText(selectedPrompt.prompt);
-    } else {
-      setDraftName("");
-      setDraftText("");
-    }
-  };
-
-  const handleStartCreate = () => {
-    setIsCreating(true);
-    setDraftName("");
-    setDraftText("");
-  };
-
-  const hasPrompts = prompts.length > 0;
-  const isDirty =
-    !!selectedPrompt &&
-    (draftName.trim() !== selectedPrompt.name ||
-      draftText.trim() !== selectedPrompt.prompt.trim());
-
-  return (
-    <Field
-      label={t("settings.postProcessing.prompts.selectedPrompt.title")}
-      labelTooltip={t(
-        "settings.postProcessing.prompts.selectedPrompt.description",
-      )}
-      inputID={promptsFieldID}
-      width="100%"
-    >
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <Selector
-            label={t("settings.postProcessing.prompts.selectedPrompt.title")}
-            isLabelHidden
-            options={prompts.map((p) => ({
-              value: p.id,
-              label: p.name,
-            }))}
-            value={selectedPromptId || ""}
-            onChange={(value) => handlePromptSelect(value)}
-            placeholder={
-              prompts.length === 0
-                ? t("settings.postProcessing.prompts.noPrompts")
-                : t("settings.postProcessing.prompts.selectPrompt")
-            }
-            isDisabled={
-              isUpdating("post_process_selected_prompt_id") || isCreating
-            }
-          />
-          <Button
-            label={t("settings.postProcessing.prompts.createNew")}
-            onClick={handleStartCreate}
-            variant="primary"
-            isDisabled={isCreating}
-          />
-        </div>
-
-        {!isCreating && hasPrompts && selectedPrompt && (
-          <div className="space-y-3">
-            <TextInput
-              label={t("settings.postProcessing.prompts.promptLabel")}
-              type="text"
-              value={draftName}
-              onChange={(val) => setDraftName(val)}
-              placeholder={t(
-                "settings.postProcessing.prompts.promptLabelPlaceholder",
-              )}
-            />
-
-            <div className="space-y-2 flex flex-col">
-              <TextArea
-                label={t("settings.postProcessing.prompts.promptInstructions")}
-                value={draftText}
-                onChange={(val) => setDraftText(val)}
-                placeholder={t(
-                  "settings.postProcessing.prompts.promptInstructionsPlaceholder",
-                )}
-              />
-              <p className="text-xs text-secondary">
-                <Trans
-                  i18nKey="settings.postProcessing.prompts.promptTip"
-                  components={{ code: <code /> }}
-                />
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                label={t("settings.postProcessing.prompts.updatePrompt")}
-                onClick={handleUpdatePrompt}
-                variant="primary"
-                isDisabled={!draftName.trim() || !draftText.trim() || !isDirty}
-              />
-              <Button
-                label={t("settings.postProcessing.prompts.deletePrompt")}
-                onClick={() => handleDeletePrompt(selectedPromptId)}
-                variant="secondary"
-                isDisabled={!selectedPromptId || prompts.length <= 1}
-              />
-            </div>
-          </div>
-        )}
-
-        {!isCreating && !selectedPrompt && (
-          <div className="p-3 bg-muted rounded-md border border-border">
-            <p className="text-sm text-secondary">
-              {hasPrompts
-                ? t("settings.postProcessing.prompts.selectToEdit")
-                : t("settings.postProcessing.prompts.createFirst")}
-            </p>
-          </div>
-        )}
-
-        {isCreating && (
-          <div className="space-y-3">
-            <TextInput
-              label={t("settings.postProcessing.prompts.promptLabel")}
-              type="text"
-              value={draftName}
-              onChange={(val) => setDraftName(val)}
-              placeholder={t(
-                "settings.postProcessing.prompts.promptLabelPlaceholder",
-              )}
-            />
-
-            <div className="space-y-2 flex flex-col">
-              <TextArea
-                label={t("settings.postProcessing.prompts.promptInstructions")}
-                value={draftText}
-                onChange={(val) => setDraftText(val)}
-                placeholder={t(
-                  "settings.postProcessing.prompts.promptInstructionsPlaceholder",
-                )}
-              />
-              <p className="text-xs text-secondary">
-                <Trans
-                  i18nKey="settings.postProcessing.prompts.promptTip"
-                  components={{ code: <code /> }}
-                />
-              </p>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button
-                label={t("settings.postProcessing.prompts.createPrompt")}
-                onClick={handleCreatePrompt}
-                variant="primary"
-                isDisabled={!draftName.trim() || !draftText.trim()}
-              />
-              <Button
-                label={t("settings.postProcessing.prompts.cancel")}
-                onClick={handleCancelCreate}
-                variant="secondary"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    </Field>
-  );
-};
-
 export const PostProcessingSettingsApi = React.memo(
   PostProcessingSettingsApiComponent,
 );
 PostProcessingSettingsApi.displayName = "PostProcessingSettingsApi";
 
-export const PostProcessingSettingsPrompts = React.memo(
-  PostProcessingSettingsPromptsComponent,
-);
-PostProcessingSettingsPrompts.displayName = "PostProcessingSettingsPrompts";
+// Order matches the assembled prompt in settings.rs::build_default_clean_prompt
+const CLEANUP_TOGGLES = [
+  { setting: "clean_spoken_corrections", key: "spokenCorrections" },
+  { setting: "clean_filler_removal", key: "fillerRemoval" },
+  { setting: "clean_numbers", key: "numbers" },
+  { setting: "clean_formatting", key: "formatting" },
+] as const;
 
 export const PostProcessingSettings: React.FC = () => {
   const { t } = useTranslation();
   const { getSetting, updateSetting, isUpdating } = useSettings();
-
-  const stripFiller = getSetting("clean_strip_filler") ?? true;
-  const convertSpoken = getSetting("clean_convert_spoken") ?? true;
-  const experimentalEnabled = getSetting("experimental_enabled") || false;
 
   return (
     <SettingsPage
@@ -413,32 +155,23 @@ export const PostProcessingSettings: React.FC = () => {
         <PostProcessingSettingsApi />
       </SettingsFormGroup>
 
-      {experimentalEnabled && (
-        <SettingsFormGroup title={t("settings.postProcessing.cleanup.title")}>
+      <SettingsFormGroup title={t("settings.postProcessing.cleanup.title")}>
+        {CLEANUP_TOGGLES.map(({ setting, key }) => (
           <Switch
-            value={stripFiller}
-            onChange={(value) => updateSetting("clean_strip_filler", value)}
-            isLoading={isUpdating("clean_strip_filler")}
-            label={t("settings.postProcessing.cleanup.stripFiller.label")}
+            key={setting}
+            value={getSetting(setting) ?? true}
+            onChange={(value) => updateSetting(setting, value)}
+            isLoading={isUpdating(setting)}
+            label={t(`settings.postProcessing.cleanup.${key}.label`)}
             description={t(
-              "settings.postProcessing.cleanup.stripFiller.description",
+              `settings.postProcessing.cleanup.${key}.description`,
             )}
+            labelPosition="start"
             labelSpacing="spread"
             width="100%"
           />
-          <Switch
-            value={convertSpoken}
-            onChange={(value) => updateSetting("clean_convert_spoken", value)}
-            isLoading={isUpdating("clean_convert_spoken")}
-            label={t("settings.postProcessing.cleanup.convertSpoken.label")}
-            description={t(
-              "settings.postProcessing.cleanup.convertSpoken.description",
-            )}
-            labelSpacing="spread"
-            width="100%"
-          />
-        </SettingsFormGroup>
-      )}
+        ))}
+      </SettingsFormGroup>
     </SettingsPage>
   );
 };

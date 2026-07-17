@@ -130,12 +130,14 @@ const settingUpdaters: {
   auto_submit_key: (value) =>
     commands.changeAutoSubmitKeySetting(value as string),
   history_limit: (value) => commands.updateHistoryLimit(value as number),
-  post_process_selected_prompt_id: (value) =>
-    commands.setPostProcessSelectedPrompt(value as string),
-  clean_strip_filler: (value) =>
-    commands.changeCleanStripFillerSetting(value as boolean),
-  clean_convert_spoken: (value) =>
-    commands.changeCleanConvertSpokenSetting(value as boolean),
+  clean_spoken_corrections: (value) =>
+    commands.changeCleanSpokenCorrectionsSetting(value as boolean),
+  clean_filler_removal: (value) =>
+    commands.changeCleanFillerRemovalSetting(value as boolean),
+  clean_numbers: (value) =>
+    commands.changeCleanNumbersSetting(value as boolean),
+  clean_formatting: (value) =>
+    commands.changeCleanFormattingSetting(value as boolean),
   summarize_enabled: (value) => commands.setSummarizeEnabled(value as boolean),
   summarize_selected_prompt_id: (value) =>
     commands.setSummarizeSelectedPrompt(value as string),

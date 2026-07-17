@@ -75,7 +75,7 @@ This is what the fork uses today. Workflow lives in [UPSTREAM.md](../UPSTREAM.md
 
 Switch when **an upstream merge breaks something** and we need to ship a Goldfish-only hotfix
 without pulling in the rest of that merge. (The fork is pull-only, so "contributing fixes back
-upstream" is *not* a trigger — that path does not exist.)
+upstream" is _not_ a trigger — that path does not exist.)
 
 Two-branch merge flow (for when we get there):
 
@@ -124,7 +124,7 @@ These were meant to be the source of truth for "what is ours." In practice almos
 here — the real differentiators went in place (see the banner at the top). "What is ours" is now
 answered by **layer** (product vs. engine), not by path. Keep these dirs only as a documented seam
 for genuinely-additive future modules; a self-contained new capability (a summarisation-style
-service) *can* still start here to keep it clearly non-engine. The original scaffold spec is in
+service) _can_ still start here to keep it clearly non-engine. The original scaffold spec is in
 [scaffold.md](./scaffold.md), retained as history.
 
 ### 2. The `lib.rs` touchpoint reality
@@ -162,12 +162,12 @@ persistence → surface. It is the shared entry point for live capture, retry, a
 picking a fresh hook. (An earlier version of this doc named a `process_transcription_output` that
 did not exist; it does now, built deliberately as the pipeline spine.)
 
-For any *new* seam not covered by that spine, still prefer additive over invasive:
+For any _new_ seam not covered by that spine, still prefer additive over invasive:
 
-| Need                | Prefer                                                                                                              | Avoid                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| New shortcut action | Goldfish-only command invoked from a binding                                                                        | Copy-paste of `shortcut::handy_keys` |
-| New settings        | Goldfish section behind its own route                                                                               | Edit every Handy settings file       |
+| Need                | Prefer                                                                                                                    | Avoid                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| New shortcut action | Goldfish-only command invoked from a binding                                                                              | Copy-paste of `shortcut::handy_keys` |
+| New settings        | Goldfish section behind its own route                                                                                     | Edit every Handy settings file       |
 | New UI screen       | Build directly in Astryx — see [Frontend composition pattern](#5-frontend-composition-pattern-superseded), now superseded | Rewrite `App.tsx` wholesale          |
 
 ### 5. Frontend composition pattern (superseded)

@@ -31,7 +31,7 @@ Single `main` for now. What's Goldfish's vs. upstream's is distinguished by **la
 product), not by directory or branch — see [docs/fork-strategy.md](docs/fork-strategy.md). Switch to
 a two-branch model (`upstream-sync` + `goldfish`) only if an upstream merge breaks something and we
 need to ship a Goldfish-only fix without pulling in whatever else upstream changed. (Contributing
-fixes back upstream is *not* a trigger — the fork is pull-only.)
+fixes back upstream is _not_ a trigger — the fork is pull-only.)
 
 ## Merge workflow (single-main)
 

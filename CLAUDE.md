@@ -12,7 +12,7 @@ own product with its own pipeline, persistence model, and UI — not a rebrand o
 ## The one-way rule (Handy → Goldfish only)
 
 The relationship with upstream Handy is **pull-only**. Goldfish takes engine and stability fixes
-*from* Handy; nothing ever flows *back*. Treat `cjpais/Handy` as a read-only source, never a target.
+_from_ Handy; nothing ever flows _back_. Treat `cjpais/Handy` as a read-only source, never a target.
 
 Concretely, when working here you must **never**:
 

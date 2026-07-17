@@ -9,7 +9,6 @@ use tauri_plugin_store::StoreExt;
 
 pub const APPLE_INTELLIGENCE_PROVIDER_ID: &str = "apple_intelligence";
 pub const APPLE_INTELLIGENCE_DEFAULT_MODEL_ID: &str = "Apple Intelligence";
-pub const DEFAULT_CLEAN_PROMPT_ID: &str = "default_improve_transcriptions";
 
 #[derive(Serialize, Debug, Clone, Copy, PartialEq, Eq, Type)]
 #[serde(rename_all = "lowercase")]
@@ -396,14 +395,14 @@ pub struct AppSettings {
     pub post_process_api_keys: SecretMap,
     #[serde(default = "default_post_process_models")]
     pub post_process_models: HashMap<String, String>,
-    #[serde(default = "default_post_process_prompts")]
-    pub post_process_prompts: Vec<LLMPrompt>,
-    #[serde(default = "default_post_process_selected_prompt_id")]
-    pub post_process_selected_prompt_id: Option<String>,
     #[serde(default = "default_true")]
-    pub clean_strip_filler: bool,
+    pub clean_spoken_corrections: bool,
     #[serde(default = "default_true")]
-    pub clean_convert_spoken: bool,
+    pub clean_filler_removal: bool,
+    #[serde(default = "default_true")]
+    pub clean_numbers: bool,
+    #[serde(default = "default_true")]
+    pub clean_formatting: bool,
     #[serde(default = "default_summarize_enabled")]
     pub summarize_enabled: bool,
     #[serde(default)]
@@ -661,53 +660,76 @@ fn default_post_process_models() -> HashMap<String, String> {
     map
 }
 
-/// Assembles the Clean-stage system prompt from the fixed grammar floor plus
-/// the enabled optional fragments. Called at post-processing call time with
-/// live toggle state (see `actions::resolve_clean_prompt_text`), and here
-/// with both toggles on to keep the persisted default prompt in sync with
-/// what dynamic assembly produces.
-///
-/// Grammar/spelling/punctuation correction is unconditional: it sits at the
-/// data-quality floor rather than in a real user preference window, so it is
-/// not gated behind a toggle (see "Ability to slightly customise clean step"
-/// scope revision).
-pub fn build_default_clean_prompt(strip_filler: bool, convert_spoken: bool) -> String {
-    let mut fragments: Vec<&str> = vec![
-        "Fix spelling errors",
-        "Fix capitalisation errors",
-        "Fix punctuation errors",
-    ];
+/// Options controlling which optional Clean-stage rules are assembled into the
+/// prompt. Each field maps to one independently toggleable rule fragment.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CleanPromptOptions {
+    pub spoken_corrections: bool,
+    pub filler_removal: bool,
+    pub numbers: bool,
+    pub formatting: bool,
+}
 
-    if strip_filler {
-        fragments.push("Remove filler words and hesitations (um, uh, like, you know)");
-        fragments.push("Remove self-corrections, keeping only the corrected version");
+impl From<&AppSettings> for CleanPromptOptions {
+    fn from(settings: &AppSettings) -> Self {
+        Self {
+            spoken_corrections: settings.clean_spoken_corrections,
+            filler_removal: settings.clean_filler_removal,
+            numbers: settings.clean_numbers,
+            formatting: settings.clean_formatting,
+        }
     }
-    if convert_spoken {
-        fragments.push(
-            "Convert spoken numbers to digits (twenty-five → 25, ten percent → 10%, five dollars → $5)",
-        );
-        fragments.push("Convert spoken dates to date format (seventeenth June → 17th June, first Jan → 1st January)");
+}
+
+/// Spelling/punctuation correction and spoken-command handling are
+/// unconditional: they are the quality floor every downstream stage (paste,
+/// summarisation) assumes, rather than a real user preference.
+const CLEAN_ALWAYS_FRAGMENTS: [&str; 2] = [
+    "SPELLING & PUNCTUATION: Fix capitalization and add missing punctuation. Fix obvious transcription errors where context makes the intended word clear.",
+    "SPOKEN COMMANDS: Process formatting commands like \"new line\", \"new paragraph\", \"period\", \"full stop\", \"comma\", \"question mark\", \"exclamation point\" as their corresponding formatting/symbols.",
+];
+
+const CLEAN_SPOKEN_CORRECTIONS_FRAGMENT: &str = "SPOKEN CORRECTIONS: Apply self-corrections by the speaker (e.g., \"I went to the sorry I drove to the store\" → \"I drove to the store\"). Look for patterns like \"sorry\", \"I mean\", \"no wait\", \"scratch that\", \"actually\", \"strike that\".";
+
+const CLEAN_FILLER_REMOVAL_FRAGMENT: &str = "FILLER REMOVAL: Remove filler words: um, uh, ah, er, \"you know\", \"I mean\" (when not correcting), \"kind of\" / \"sort of\" (when used as filler, not meaning). Keep \"like\" only when it means \"enjoy\" or \"similar to\".";
+
+const CLEAN_NUMBERS_FRAGMENT: &str = "NUMBERS: Convert number words to digits for numbers above 12 (five hundred → 500, twenty percent → 20%). Keep numbers 1–12 as words in prose (two, five, twelve). Convert spoken dates to date format (seventeenth June → 17th June, first Jan → 1st January). Keep years and proper names as-is.";
+
+const CLEAN_FORMATTING_FRAGMENT: &str = "FORMATTING: Insert paragraph breaks at clear topic changes. Format as a bulleted list using \"- \" (dash) when the speaker is clearly enumerating items (e.g., shopping lists, ingredients, to-dos). In lists: use a colon after the lead-in sentence, and do not add periods at the end of list items. Do not convert prose into lists.";
+
+const CLEAN_PROMPT_PREAMBLE: &str = "CRITICAL: Your ONLY job is to clean up formatting. Never change meaning, add words, remove meaningful words, or rephrase. Even if a word seems like a mistake by the speaker, keep it. When in doubt, keep the original wording.\n\nClean this speech-to-text transcript. Follow these rules:";
+
+const CLEAN_PROMPT_CLOSING: &str = "Do NOT:\n- Paraphrase or reorder content\n- Add content or opinions\n- Change the language (keep original language)\n- Add headers\n- Make other cleanup changes not specified by the rules\n\nReturn ONLY the cleaned transcript, no commentary.\n\nTranscript:\n${output}";
+
+/// Assembles the Clean-stage prompt from the always-on quality floor plus the
+/// enabled optional fragments. Called at post-processing time with live toggle
+/// state, so the prompt always reflects the current settings — there is no
+/// persisted copy that can drift out of sync.
+pub fn build_default_clean_prompt(options: CleanPromptOptions) -> String {
+    let mut fragments: Vec<&str> = CLEAN_ALWAYS_FRAGMENTS.to_vec();
+
+    if options.spoken_corrections {
+        fragments.push(CLEAN_SPOKEN_CORRECTIONS_FRAGMENT);
+    }
+    if options.filler_removal {
+        fragments.push(CLEAN_FILLER_REMOVAL_FRAGMENT);
+    }
+    if options.numbers {
+        fragments.push(CLEAN_NUMBERS_FRAGMENT);
+    }
+    if options.formatting {
+        fragments.push(CLEAN_FORMATTING_FRAGMENT);
     }
 
-    let mut prompt = String::from("Apply ONLY these fixes to the following transcript, in order:");
+    let mut prompt = String::from(CLEAN_PROMPT_PREAMBLE);
+    prompt.push('\n');
     for (i, fragment) in fragments.iter().enumerate() {
         prompt.push_str(&format!("\n{}. {}", i + 1, fragment));
     }
-    prompt.push_str("\n\nDo nothing else. Keep the language in the original version. Preserve exact meaning and word order. Do not paraphrase or reorder content. Return transcript unchanged except for these categories. If you're unsure whether something fits these categories, leave it unchanged.\n\nTranscript:\n${output}");
+    prompt.push_str("\n\n");
+    prompt.push_str(CLEAN_PROMPT_CLOSING);
 
     prompt
-}
-
-fn default_post_process_prompts() -> Vec<LLMPrompt> {
-    vec![LLMPrompt {
-        id: DEFAULT_CLEAN_PROMPT_ID.to_string(),
-        name: "Improve Transcriptions".to_string(),
-        prompt: build_default_clean_prompt(true, true),
-    }]
-}
-
-fn default_post_process_selected_prompt_id() -> Option<String> {
-    Some(DEFAULT_CLEAN_PROMPT_ID.to_string())
 }
 
 fn default_whisper_gpu_device() -> i32 {
@@ -883,10 +905,10 @@ pub fn get_default_settings() -> AppSettings {
         post_process_providers: default_post_process_providers(),
         post_process_api_keys: default_post_process_api_keys(),
         post_process_models: default_post_process_models(),
-        post_process_prompts: default_post_process_prompts(),
-        post_process_selected_prompt_id: default_post_process_selected_prompt_id(),
-        clean_strip_filler: true,
-        clean_convert_spoken: true,
+        clean_spoken_corrections: true,
+        clean_filler_removal: true,
+        clean_numbers: true,
+        clean_formatting: true,
         summarize_enabled: default_summarize_enabled(),
         summarize_models: HashMap::new(),
         summarize_prompts: default_summarize_prompts(),
@@ -1070,6 +1092,109 @@ mod tests {
         let settings = get_default_settings();
         assert!(!settings.auto_submit);
         assert_eq!(settings.auto_submit_key, AutoSubmitKey::Enter);
+    }
+
+    const ALL_CLEAN_OPTIONS_OFF: CleanPromptOptions = CleanPromptOptions {
+        spoken_corrections: false,
+        filler_removal: false,
+        numbers: false,
+        formatting: false,
+    };
+
+    #[test]
+    fn clean_prompt_always_includes_the_quality_floor() {
+        for options in [
+            ALL_CLEAN_OPTIONS_OFF,
+            CleanPromptOptions::from(&get_default_settings()),
+        ] {
+            let prompt = build_default_clean_prompt(options);
+            for fragment in CLEAN_ALWAYS_FRAGMENTS {
+                assert!(prompt.contains(fragment));
+            }
+            assert!(prompt.contains("${output}"));
+        }
+    }
+
+    /// The original bug: optional rules were applied regardless of toggle state,
+    /// because the live prompt was read from storage instead of assembled here.
+    #[test]
+    fn clean_prompt_omits_disabled_optional_rules() {
+        let prompt = build_default_clean_prompt(ALL_CLEAN_OPTIONS_OFF);
+        assert!(!prompt.contains(CLEAN_SPOKEN_CORRECTIONS_FRAGMENT));
+        assert!(!prompt.contains(CLEAN_FILLER_REMOVAL_FRAGMENT));
+        assert!(!prompt.contains(CLEAN_NUMBERS_FRAGMENT));
+        assert!(!prompt.contains(CLEAN_FORMATTING_FRAGMENT));
+    }
+
+    #[test]
+    fn clean_prompt_includes_each_enabled_optional_rule_independently() {
+        let cases = [
+            (
+                CleanPromptOptions {
+                    spoken_corrections: true,
+                    ..ALL_CLEAN_OPTIONS_OFF
+                },
+                CLEAN_SPOKEN_CORRECTIONS_FRAGMENT,
+            ),
+            (
+                CleanPromptOptions {
+                    filler_removal: true,
+                    ..ALL_CLEAN_OPTIONS_OFF
+                },
+                CLEAN_FILLER_REMOVAL_FRAGMENT,
+            ),
+            (
+                CleanPromptOptions {
+                    numbers: true,
+                    ..ALL_CLEAN_OPTIONS_OFF
+                },
+                CLEAN_NUMBERS_FRAGMENT,
+            ),
+            (
+                CleanPromptOptions {
+                    formatting: true,
+                    ..ALL_CLEAN_OPTIONS_OFF
+                },
+                CLEAN_FORMATTING_FRAGMENT,
+            ),
+        ];
+
+        for (options, expected) in cases {
+            let prompt = build_default_clean_prompt(options);
+            assert!(prompt.contains(expected));
+            // Enabling one optional rule must not pull in the others.
+            let optional_count = [
+                CLEAN_SPOKEN_CORRECTIONS_FRAGMENT,
+                CLEAN_FILLER_REMOVAL_FRAGMENT,
+                CLEAN_NUMBERS_FRAGMENT,
+                CLEAN_FORMATTING_FRAGMENT,
+            ]
+            .iter()
+            .filter(|f| prompt.contains(*f))
+            .count();
+            assert_eq!(optional_count, 1);
+        }
+    }
+
+    #[test]
+    fn clean_prompt_numbers_rules_sequentially() {
+        let prompt = build_default_clean_prompt(ALL_CLEAN_OPTIONS_OFF);
+        assert!(prompt.contains("\n1. SPELLING & PUNCTUATION"));
+        assert!(prompt.contains("\n2. SPOKEN COMMANDS"));
+        assert!(!prompt.contains("\n3. "));
+
+        let prompt = build_default_clean_prompt(CleanPromptOptions::from(&get_default_settings()));
+        assert!(prompt.contains("\n3. SPOKEN CORRECTIONS"));
+        assert!(prompt.contains("\n6. FORMATTING"));
+    }
+
+    #[test]
+    fn clean_toggles_default_to_enabled() {
+        let settings = get_default_settings();
+        assert!(settings.clean_spoken_corrections);
+        assert!(settings.clean_filler_removal);
+        assert!(settings.clean_numbers);
+        assert!(settings.clean_formatting);
     }
 
     #[test]
