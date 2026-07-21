@@ -3,7 +3,7 @@
 **Status:** executed, then superseded — retained as history
 **Last updated:** 2026-07-11
 
-> This scaffold _was_ executed (the `goldfish_ping` command and no-op `register_state` exist). But
+> This scaffold *was* executed (the `goldfish_ping` command and no-op `register_state` exist). But
 > the directory-isolation model it serves has since been superseded by layer-based isolation — the
 > real Goldfish work landed in place, not in `goldfish/`. See [fork-strategy.md](./fork-strategy.md)
 > and the 2026-07-11 entry in [decisions.md](./decisions.md). This spec is kept only to document

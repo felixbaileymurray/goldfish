@@ -662,7 +662,7 @@ fn default_post_process_models() -> HashMap<String, String> {
 
 /// Options controlling which optional Clean-stage rules are assembled into the
 /// prompt. Each field maps to one independently toggleable rule fragment.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub struct CleanPromptOptions {
     pub spoken_corrections: bool,
     pub filler_removal: bool,

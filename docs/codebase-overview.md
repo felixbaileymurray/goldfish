@@ -51,13 +51,13 @@ flowchart LR
 
 ### Technology stack
 
-| Layer         | Technologies                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
+| Layer         | Technologies                                                                      |
+| ------------- | --------------------------------------------------------------------------------- |
 | **Frontend**  | React 19, TypeScript, Vite 6, Tailwind 4, Zustand (+ Immer), i18next (20 locales), Astryx design system |
-| **Shell**     | Tauri 2.10                                                                                              |
-| **IPC**       | tauri-specta → auto-generated `src/bindings.ts` (~80 commands)                                          |
-| **Inference** | `transcribe-rs` (Whisper via Metal/Vulkan; Parakeet/Moonshine/etc. via ONNX)                            |
-| **Audio**     | `cpal` → `rubato` resample to 16 kHz → `vad-rs` Silero VAD                                              |
+| **Shell**     | Tauri 2.10                                                                        |
+| **IPC**       | tauri-specta → auto-generated `src/bindings.ts` (~80 commands)                    |
+| **Inference** | `transcribe-rs` (Whisper via Metal/Vulkan; Parakeet/Moonshine/etc. via ONNX)      |
+| **Audio**     | `cpal` → `rubato` resample to 16 kHz → `vad-rs` Silero VAD                        |
 
 ## Runtime flow (core product loop)
 

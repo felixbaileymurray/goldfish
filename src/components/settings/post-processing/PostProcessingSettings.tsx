@@ -3,16 +3,19 @@ import { useTranslation } from "react-i18next";
 import { RefreshCcw } from "lucide-react";
 
 import { Banner } from "@astryxdesign/core/Banner";
-import { Field, HStack, IconButton, Switch } from "@astryxdesign/core";
+import { Field, HStack, IconButton } from "@astryxdesign/core";
 
 import { ProviderSelect } from "../PostProcessingSettingsApi/ProviderSelect";
 import { BaseUrlField } from "../PostProcessingSettingsApi/BaseUrlField";
 import { ApiKeyField } from "../PostProcessingSettingsApi/ApiKeyField";
 import { ModelSelect } from "../PostProcessingSettingsApi/ModelSelect";
 import { usePostProcessProviderState } from "../PostProcessingSettingsApi/usePostProcessProviderState";
-import { useSettings } from "../../../hooks/useSettings";
 import { SettingsPage } from "../shared/SettingsPage";
 import { SettingsFormGroup } from "../shared/SettingsFormGroup";
+import { CleanSpokenCorrections } from "../CleanSpokenCorrections";
+import { CleanFillerRemoval } from "../CleanFillerRemoval";
+import { CleanNumbers } from "../CleanNumbers";
+import { CleanFormatting } from "../CleanFormatting";
 
 const PostProcessingSettingsApiComponent: React.FC = () => {
   const { t } = useTranslation();
@@ -134,17 +137,8 @@ export const PostProcessingSettingsApi = React.memo(
 );
 PostProcessingSettingsApi.displayName = "PostProcessingSettingsApi";
 
-// Order matches the assembled prompt in settings.rs::build_default_clean_prompt
-const CLEANUP_TOGGLES = [
-  { setting: "clean_spoken_corrections", key: "spokenCorrections" },
-  { setting: "clean_filler_removal", key: "fillerRemoval" },
-  { setting: "clean_numbers", key: "numbers" },
-  { setting: "clean_formatting", key: "formatting" },
-] as const;
-
 export const PostProcessingSettings: React.FC = () => {
   const { t } = useTranslation();
-  const { getSetting, updateSetting, isUpdating } = useSettings();
 
   return (
     <SettingsPage
@@ -155,22 +149,12 @@ export const PostProcessingSettings: React.FC = () => {
         <PostProcessingSettingsApi />
       </SettingsFormGroup>
 
+      {/* Order matches the assembled prompt in settings.rs::build_default_clean_prompt */}
       <SettingsFormGroup title={t("settings.postProcessing.cleanup.title")}>
-        {CLEANUP_TOGGLES.map(({ setting, key }) => (
-          <Switch
-            key={setting}
-            value={getSetting(setting) ?? true}
-            onChange={(value) => updateSetting(setting, value)}
-            isLoading={isUpdating(setting)}
-            label={t(`settings.postProcessing.cleanup.${key}.label`)}
-            description={t(
-              `settings.postProcessing.cleanup.${key}.description`,
-            )}
-            labelPosition="start"
-            labelSpacing="spread"
-            width="100%"
-          />
-        ))}
+        <CleanSpokenCorrections />
+        <CleanFillerRemoval />
+        <CleanNumbers />
+        <CleanFormatting />
       </SettingsFormGroup>
     </SettingsPage>
   );

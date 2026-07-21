@@ -46,15 +46,15 @@ The commands live in `.claude/commands/` — **gitignored**, because they hold t
 database IDs kept out of version control (see [decisions.md](./decisions.md), 2026-06-01). The
 `ticket-writer` skill is tracked in `.claude/skills/`.
 
-| Tool            | Type            | Does                                                                                                                                    | Status move                   | Commits? |
-| --------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | -------- |
-| `/refine`       | command (local) | Turns a New/In Design draft into a buildable Ready story, grounded in the codebase; flags loose parent/child groupings                  | New → Ready                   | no       |
-| `/build`        | command (local) | Picks up a Ready ticket, resolves its branch, implements, writes post-build notes                                                       | Ready → In progress → Testing | no       |
-| `/ship`         | command (local) | On a ticket the user has moved to Done, commits remaining changes; for standalone/parent tickets pushes + opens the PR (confirm first)  | sets `Date.end`               | **yes**  |
-| `/commit`       | command         | Stages current changes and writes a conventional-commit message                                                                         | —                             | yes      |
-| `ticket-writer` | skill (tracked) | Owns ticket **body prose** only — per-type section templates + style rules; invoked explicitly by `/refine` and `/build`, never `/ship` | —                             | no       |
+| Tool | Type | Does | Status move | Commits? |
+| ---- | ---- | ---- | ----------- | -------- |
+| `/refine` | command (local) | Turns a New/In Design draft into a buildable Ready story, grounded in the codebase; flags loose parent/child groupings | New → Ready | no |
+| `/build` | command (local) | Picks up a Ready ticket, resolves its branch, implements, writes post-build notes | Ready → In progress → Testing | no |
+| `/ship` | command (local) | On a ticket the user has moved to Done, commits remaining changes; for standalone/parent tickets pushes + opens the PR (confirm first) | sets `Date.end` | **yes** |
+| `/commit` | command | Stages current changes and writes a conventional-commit message | — | yes |
+| `ticket-writer` | skill (tracked) | Owns ticket **body prose** only — per-type section templates + style rules; invoked explicitly by `/refine` and `/build`, never `/ship` | — | no |
 
-Ownership split: `ticket-writer` owns body _content_; the commands own ticket _fields_ (Status, Date,
+Ownership split: `ticket-writer` owns body *content*; the commands own ticket *fields* (Status, Date,
 Tags, Blocked by/Blocking) and git mechanics. If a new command writes ticket prose, wire it to call
 `ticket-writer` the same way rather than duplicating the conventions.
 
@@ -75,16 +75,16 @@ database/data-source IDs live in the local `.claude/commands/` files, not in thi
 
 **Statuses.** New → In Design → Ready → In progress → Testing → Done, plus Blocked and Descoped.
 
-| Status      | Group       | Meaning                              |
-| ----------- | ----------- | ------------------------------------ |
-| New         | to do       | Unrefined idea                       |
-| In Design   | to do       | Being designed before dev            |
-| Ready       | to do       | Refined; `/build` can pick it up     |
-| In progress | in progress | Being implemented                    |
-| Testing     | in progress | Implementation done; human verifying |
-| Blocked     | in progress | Waiting on a dependency              |
-| Done        | complete    | Human-confirmed; `/ship` commits     |
-| Descoped    | complete    | Won't be built                       |
+| Status | Group | Meaning |
+| ------ | ----- | ------- |
+| New | to do | Unrefined idea |
+| In Design | to do | Being designed before dev |
+| Ready | to do | Refined; `/build` can pick it up |
+| In progress | in progress | Being implemented |
+| Testing | in progress | Implementation done; human verifying |
+| Blocked | in progress | Waiting on a dependency |
+| Done | complete | Human-confirmed; `/ship` commits |
+| Descoped | complete | Won't be built |
 
 **Tags** drive the branch prefix (see [Branch naming](#branch-naming)) and signal the kind of work.
 Two research-flavoured tags are deliberately distinct:
@@ -105,8 +105,8 @@ Two research-flavoured tags are deliberately distinct:
 Two cautions when building from a ticket:
 
 - A ticket's Acceptance Criteria may have been **drafted by an earlier agent session**, not written by
-  Felix — don't treat it as committed spec. Before building a bullet that adds a _new user-facing
-  surface_ (a new field, list editor, toggle), confirm rather than implementing straight from the text.
+  Felix — don't treat it as committed spec. Before building a bullet that adds a *new user-facing
+  surface* (a new field, list editor, toggle), confirm rather than implementing straight from the text.
   A new surface that closely parallels an existing one is a strong scope-drift signal.
 - Prose content and section templates are owned by the `ticket-writer` skill — call it, don't
   reinvent the conventions inline.
@@ -214,7 +214,6 @@ work).
   is typically executed by Claude Sonnet 5, with Opus 4.8 handling planning and architecture
   decisions.
   ```
-
 - `Description` is Felix's own words, never Claude's. Claude asks Felix for this content
   when drafting a self-PR — it does not guess at it or leave a placeholder for later; the
   question is part of opening the PR, same turn.

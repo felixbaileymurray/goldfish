@@ -76,7 +76,18 @@ fn build_system_prompt(prompt_template: &str) -> String {
     prompt_template.replace("${output}", "").trim().to_string()
 }
 
-async fn post_process_transcription(settings: &AppSettings, transcription: &str) -> Option<String> {
+/// Result of the Clean-stage post-processing pass: the cleaned text plus the
+/// prompt used, so the caller can store the prompt alongside the entry without
+/// rebuilding it (mirrors `summarize::SummaryResult`).
+struct PostProcessResult {
+    text: String,
+    prompt: String,
+}
+
+async fn post_process_transcription(
+    settings: &AppSettings,
+    transcription: &str,
+) -> Option<PostProcessResult> {
     let provider = match settings.active_post_process_provider().cloned() {
         Some(provider) => provider,
         None => {
@@ -161,7 +172,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                                 "Apple Intelligence post-processing succeeded. Output length: {} chars",
                                 result.len()
                             );
-                            Some(result)
+                            Some(PostProcessResult {
+                                text: result,
+                                prompt: prompt.clone(),
+                            })
                         }
                     }
                     Err(err) => {
@@ -216,10 +230,16 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                                 provider.id,
                                 result.len()
                             );
-                            return Some(result);
+                            return Some(PostProcessResult {
+                                text: result,
+                                prompt: prompt.clone(),
+                            });
                         } else {
                             error!("Structured output response missing 'transcription' field");
-                            return Some(strip_invisible_chars(&content));
+                            return Some(PostProcessResult {
+                                text: strip_invisible_chars(&content),
+                                prompt: prompt.clone(),
+                            });
                         }
                     }
                     Err(e) => {
@@ -227,7 +247,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                             "Failed to parse structured output JSON: {}. Returning raw content.",
                             e
                         );
-                        return Some(strip_invisible_chars(&content));
+                        return Some(PostProcessResult {
+                            text: strip_invisible_chars(&content),
+                            prompt: prompt.clone(),
+                        });
                     }
                 }
             }
@@ -266,7 +289,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                 provider.id,
                 content.len()
             );
-            Some(content)
+            Some(PostProcessResult {
+                text: content,
+                prompt,
+            })
         }
         Ok(None) => {
             error!("LLM API response has no content");
@@ -396,12 +422,10 @@ pub(crate) async fn process_transcription_output(
 
     // Always-on input hygiene — runs on both Dictate and Keep. Gracefully
     // no-ops if no provider/model/prompt is configured.
-    if let Some(processed_text) = post_process_transcription(&settings, &final_text).await {
-        post_processed_text = Some(processed_text.clone());
-        final_text = processed_text;
-        post_process_prompt = Some(build_default_clean_prompt(CleanPromptOptions::from(
-            &settings,
-        )));
+    if let Some(result) = post_process_transcription(&settings, &final_text).await {
+        post_processed_text = Some(result.text.clone());
+        final_text = result.text;
+        post_process_prompt = Some(result.prompt);
     } else if final_text != transcription {
         post_processed_text = Some(final_text.clone());
     }
