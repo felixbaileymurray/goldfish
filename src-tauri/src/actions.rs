@@ -6,8 +6,8 @@ use crate::managers::audio::AudioRecordingManager;
 use crate::managers::history::HistoryManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::settings::{
-    build_default_clean_prompt, get_settings, AppSettings, APPLE_INTELLIGENCE_PROVIDER_ID,
-    DEFAULT_CLEAN_PROMPT_ID,
+    build_default_clean_prompt, get_settings, AppSettings, CleanPromptOptions,
+    APPLE_INTELLIGENCE_PROVIDER_ID,
 };
 use crate::shortcut;
 use crate::tray::{change_tray_icon, TrayIconState};
@@ -76,26 +76,18 @@ fn build_system_prompt(prompt_template: &str) -> String {
     prompt_template.replace("${output}", "").trim().to_string()
 }
 
-/// Resolves the text of the selected post-process prompt. For the built-in
-/// Clean prompt, this is assembled at call time from the `clean_*` toggles
-/// rather than read from storage, so toggling a setting takes effect
-/// immediately. User-created custom prompts are returned as stored.
-fn resolve_clean_prompt_text(settings: &AppSettings, prompt_id: &str) -> Option<String> {
-    if prompt_id == DEFAULT_CLEAN_PROMPT_ID {
-        return Some(build_default_clean_prompt(
-            settings.clean_strip_filler,
-            settings.clean_convert_spoken,
-        ));
-    }
-
-    settings
-        .post_process_prompts
-        .iter()
-        .find(|prompt| prompt.id == prompt_id)
-        .map(|prompt| prompt.prompt.clone())
+/// Result of the Clean-stage post-processing pass: the cleaned text plus the
+/// prompt used, so the caller can store the prompt alongside the entry without
+/// rebuilding it (mirrors `summarize::SummaryResult`).
+struct PostProcessResult {
+    text: String,
+    prompt: String,
 }
 
-async fn post_process_transcription(settings: &AppSettings, transcription: &str) -> Option<String> {
+async fn post_process_transcription(
+    settings: &AppSettings,
+    transcription: &str,
+) -> Option<PostProcessResult> {
     let provider = match settings.active_post_process_provider().cloned() {
         Some(provider) => provider,
         None => {
@@ -118,29 +110,7 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
         return None;
     }
 
-    let selected_prompt_id = match &settings.post_process_selected_prompt_id {
-        Some(id) => id.clone(),
-        None => {
-            debug!("Post-processing skipped because no prompt is selected");
-            return None;
-        }
-    };
-
-    let prompt = match resolve_clean_prompt_text(settings, &selected_prompt_id) {
-        Some(prompt) => prompt,
-        None => {
-            debug!(
-                "Post-processing skipped because prompt '{}' was not found",
-                selected_prompt_id
-            );
-            return None;
-        }
-    };
-
-    if prompt.trim().is_empty() {
-        debug!("Post-processing skipped because the selected prompt is empty");
-        return None;
-    }
+    let prompt = build_default_clean_prompt(CleanPromptOptions::from(settings));
 
     debug!(
         "Starting LLM post-processing with provider '{}' (model: {})",
@@ -202,7 +172,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                                 "Apple Intelligence post-processing succeeded. Output length: {} chars",
                                 result.len()
                             );
-                            Some(result)
+                            Some(PostProcessResult {
+                                text: result,
+                                prompt: prompt.clone(),
+                            })
                         }
                     }
                     Err(err) => {
@@ -257,10 +230,16 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                                 provider.id,
                                 result.len()
                             );
-                            return Some(result);
+                            return Some(PostProcessResult {
+                                text: result,
+                                prompt: prompt.clone(),
+                            });
                         } else {
                             error!("Structured output response missing 'transcription' field");
-                            return Some(strip_invisible_chars(&content));
+                            return Some(PostProcessResult {
+                                text: strip_invisible_chars(&content),
+                                prompt: prompt.clone(),
+                            });
                         }
                     }
                     Err(e) => {
@@ -268,7 +247,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                             "Failed to parse structured output JSON: {}. Returning raw content.",
                             e
                         );
-                        return Some(strip_invisible_chars(&content));
+                        return Some(PostProcessResult {
+                            text: strip_invisible_chars(&content),
+                            prompt: prompt.clone(),
+                        });
                     }
                 }
             }
@@ -307,7 +289,10 @@ async fn post_process_transcription(settings: &AppSettings, transcription: &str)
                 provider.id,
                 content.len()
             );
-            Some(content)
+            Some(PostProcessResult {
+                text: content,
+                prompt,
+            })
         }
         Ok(None) => {
             error!("LLM API response has no content");
@@ -437,13 +422,10 @@ pub(crate) async fn process_transcription_output(
 
     // Always-on input hygiene — runs on both Dictate and Keep. Gracefully
     // no-ops if no provider/model/prompt is configured.
-    if let Some(processed_text) = post_process_transcription(&settings, &final_text).await {
-        post_processed_text = Some(processed_text.clone());
-        final_text = processed_text;
-
-        if let Some(prompt_id) = &settings.post_process_selected_prompt_id {
-            post_process_prompt = resolve_clean_prompt_text(&settings, prompt_id);
-        }
+    if let Some(result) = post_process_transcription(&settings, &final_text).await {
+        post_processed_text = Some(result.text.clone());
+        final_text = result.text;
+        post_process_prompt = Some(result.prompt);
     } else if final_text != transcription {
         post_processed_text = Some(final_text.clone());
     }
